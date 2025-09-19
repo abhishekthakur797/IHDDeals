@@ -56,8 +56,8 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.warn('Database table not found, using fallback data:', error.message);
+      if (error || !data) {
+        // Silently use fallback data when database is not set up
         // Use fallback mock data when database is not set up
         setProducts([
           {
