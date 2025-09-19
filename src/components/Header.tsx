@@ -330,7 +330,6 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
           </div>
         )}
         </div>
-      </div>
 
       {/* Product Filters */}
       <div className="border-t border-gray-200 dark:border-gray-700">
