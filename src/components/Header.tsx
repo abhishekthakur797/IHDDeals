@@ -34,6 +34,7 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
   const [showProductsPage, setShowProductsPage] = useState(false);
   const [showCommunityPage, setShowCommunityPage] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const categories = ['all', 'electronics', 'fashion', 'home', 'books', 'sports'];
 
@@ -141,6 +142,9 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
     await signOut();
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
