@@ -191,9 +191,9 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
       {/* Top Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center space-x-4">
@@ -375,6 +375,7 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
           </div>
         )}
         </div>
+      </div>
 
       {/* Product Filters */}
       <div className="border-t border-gray-200 dark:border-gray-700">
