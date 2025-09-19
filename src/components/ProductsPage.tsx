@@ -50,10 +50,18 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ onClose, initialProducts })
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If it's a table not found error, silently use empty array
+        if (error.code === 'PGRST116' || error.message?.includes('Could not find the table')) {
+          setProducts([]);
+          return;
+        }
+        throw error;
+      }
       setProducts(data || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      // Silently handle database errors
+      setProducts([]);
     } finally {
       setLoading(false);
     }
