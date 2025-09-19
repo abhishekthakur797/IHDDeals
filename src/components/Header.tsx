@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { Moon, Sun, Search, Filter, LogIn, LogOut, User as UserIcon, ArrowRight, MessageSquare, Package, Send } from 'lucide-react';
+import { Moon, Sun, Search, Filter, LogIn, LogOut, User as UserIcon, ArrowRight, MessageSquare, Package, Send, Menu, X } from 'lucide-react';
 import { supabase, signOut } from '../lib/supabase';
 import { useTheme } from '../contexts/ThemeContext';
 import ProductCard from './ProductCard';
@@ -33,6 +33,7 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
   const [loading, setLoading] = useState(true);
   const [showProductsPage, setShowProductsPage] = useState(false);
   const [showCommunityPage, setShowCommunityPage] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const categories = ['all', 'electronics', 'fashion', 'home', 'books', 'sports'];
 
@@ -140,11 +141,16 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
     await signOut();
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
       {/* Top Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
+          {/* Logo */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
               <img 
@@ -155,8 +161,8 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
             </div>
           </div>
           
-          {/* Navigation Buttons */}
-          <div className="flex items-center space-x-4">
+          {/* Desktop Navigation Buttons */}
+          <div className="hidden lg:flex items-center space-x-4">
             <button
               onClick={() => setShowProductsPage(true)}
               className="flex items-center space-x-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -182,7 +188,8 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
             </button>
           </div>
           
-          <div className="flex items-center space-x-4">
+          {/* Desktop Auth & Theme Controls */}
+          <div className="hidden lg:flex items-center space-x-4">
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -219,6 +226,109 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
               </button>
             )}
           </div>
+          
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden flex items-center space-x-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {isDark ? (
+                <Sun className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+              ) : (
+                <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+              )}
+            </button>
+            
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+              ) : (
+                <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+              )}
+            </button>
+          </div>
+        </div>
+        
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 py-4">
+            <div className="space-y-2">
+              {/* Navigation Items */}
+              <button
+                onClick={() => {
+                  setShowProductsPage(true);
+                  closeMobileMenu();
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
+              >
+                <Package className="h-5 w-5" />
+                <span>Products</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowCommunityPage(true);
+                  closeMobileMenu();
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
+              >
+                <MessageSquare className="h-5 w-5" />
+                <span>Discussions</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  window.open('https://t.me/IHDBroadcast', '_blank', 'noopener,noreferrer');
+                  closeMobileMenu();
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
+              >
+                <Send className="h-5 w-5" />
+                <span>Telegram</span>
+              </button>
+              
+              {/* Divider */}
+              <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+              
+              {/* Auth Section */}
+              {user ? (
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                    <UserIcon className="h-5 w-5" />
+                    <span>{user.email}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      closeMobileMenu();
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    onAuthClick();
+                    closeMobileMenu();
+                  }}
+                  className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-left"
+                >
+                  <LogIn className="h-5 w-5" />
+                  <span>Sign In</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         </div>
       </div>
 
