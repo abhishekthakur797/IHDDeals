@@ -45,23 +45,12 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ onClose, initialProducts })
   const fetchAllProducts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('affiliate_products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        // If it's a table not found error, silently use empty array
-        if (error.code === 'PGRST116' || error.message?.includes('Could not find the table')) {
-          setProducts([]);
-          return;
-        }
-        throw error;
-      }
-      setProducts(data || []);
+      // Use initial products passed from parent component
+      // No database calls needed until Supabase is connected
+      setProducts(initialProducts);
     } catch (error) {
-      // Silently handle database errors
-      setProducts([]);
+      // Silently handle any errors
+      setProducts(initialProducts);
     } finally {
       setLoading(false);
     }
