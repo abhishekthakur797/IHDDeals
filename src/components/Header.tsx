@@ -248,7 +248,7 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
             <div className="flex items-center space-x-3">
               {!isDark ? (
                 <img 
-                  src="/IHDdeals-Logo-Light.png" 
+                  src="/IHDdeals-Logo-White-Theme.png" 
                   alt="IHD Deals Logo" 
                   className="h-12 w-auto"
                 />
