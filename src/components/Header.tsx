@@ -344,7 +344,9 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
           id: '4',
           name: 'Smart Home Speaker',
           price: 99.99,
-          image_url: 'https://images.pexels.com/photos/6686448/pexels-photo-6686448.jpeg?auto=compress&cs=tinysrgb&w=300',
+          image_url: 'https://images.pexels.com/photos/6686448/pexels-pho
+  )
+}to-6686448.jpeg?auto=compress&cs=tinysrgb&w=300',
           affiliate_link: '#',
           category: 'electronics',
           description: 'Voice-controlled smart speaker with AI assistant',
