@@ -12,6 +12,20 @@
   display: none;
 }
 
+/* Slider specific styles */
+.slider-container {
+  cursor: grab;
+  user-select: none;
+}
+
+.slider-container:active {
+  cursor: grabbing;
+}
+
+.slider-container::-webkit-scrollbar {
+  display: none;
+}
+
 /* Line clamp utilities */
 .line-clamp-2 {
   overflow: hidden;

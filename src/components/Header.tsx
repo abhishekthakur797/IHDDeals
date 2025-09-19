@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { Moon, Sun, Search, Filter, LogIn, LogOut, User as UserIcon, ArrowRight, MessageSquare, Package, Send, Menu, X } from 'lucide-react';
+import { Moon, Sun, Search, Filter, LogIn, LogOut, User as UserIcon, ArrowRight, MessageSquare, Package, Send, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, signOut } from '../lib/supabase';
 import { useTheme } from '../contexts/ThemeContext';
 import ProductCard from './ProductCard';
@@ -34,6 +34,10 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
   const [showProductsPage, setShowProductsPage] = useState(false);
   const [showCommunityPage, setShowCommunityPage] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [sliderRef, setSliderRef] = useState<HTMLDivElement | null>(null);
 
   const categories = ['all', 'electronics', 'fashion', 'home', 'books', 'sports'];
 
@@ -143,6 +147,47 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!sliderRef) return;
+    setIsDragging(true);
+    setStartX(e.pageX - sliderRef.offsetLeft);
+    setScrollLeft(sliderRef.scrollLeft);
+    sliderRef.style.cursor = 'grabbing';
+  };
+
+  const handleMouseLeave = () => {
+    if (!sliderRef) return;
+    setIsDragging(false);
+    sliderRef.style.cursor = 'grab';
+  };
+
+  const handleMouseUp = () => {
+    if (!sliderRef) return;
+    setIsDragging(false);
+    sliderRef.style.cursor = 'grab';
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !sliderRef) return;
+    e.preventDefault();
+    const x = e.pageX - sliderRef.offsetLeft;
+    const walk = (x - startX) * 2;
+    sliderRef.scrollLeft = scrollLeft - walk;
+  };
+
+  const scrollSlider = (direction: 'left' | 'right') => {
+    if (!sliderRef) return;
+    const scrollAmount = 300;
+    const newScrollLeft = direction === 'left' 
+      ? sliderRef.scrollLeft - scrollAmount 
+      : sliderRef.scrollLeft + scrollAmount;
+    
+    sliderRef.scrollTo({
+      left: newScrollLeft,
+      behavior: 'smooth'
+    });
   };
 
   return (
@@ -378,29 +423,59 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
       {/* Product Showcase */}
       <div className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Featured Deals
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Featured Deals
+            </h2>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => scrollSlider('left')}
+                className="p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              </button>
+              <button
+                onClick={() => scrollSlider('right')}
+                className="p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              </button>
+            </div>
+          </div>
           
           {loading ? (
-            <div className="flex space-x-4 overflow-hidden">
+            <div className="flex space-x-4 overflow-hidden cursor-grab">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex-none w-64 h-80 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
               ))}
             </div>
           ) : (
             <>
-              <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
+              <div 
+                ref={setSliderRef}
+                className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide cursor-grab select-none"
+                onMouseDown={handleMouseDown}
+                onMouseLeave={handleMouseLeave}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {filteredProducts.slice(0, 10).map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <div key={product.id} className="pointer-events-none">
+                    <div className="pointer-events-auto">
+                      <ProductCard product={product} />
+                    </div>
+                  </div>
                 ))}
                 
                 {/* View All Products Button */}
                 {filteredProducts.length > 10 && (
-                  <div className="flex-none w-64 flex items-center justify-center">
+                  <div className="flex-none w-64 flex items-center justify-center pointer-events-none">
                     <button
                       onClick={() => setShowProductsPage(true)}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-4 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105 pointer-events-auto"
                     >
                       <span>View All {filteredProducts.length} Products</span>
                       <ArrowRight className="h-5 w-5" />
@@ -409,7 +484,7 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
                 )}
                 
                 {filteredProducts.length === 0 && (
-                  <div className="flex-none w-full text-center py-12 text-gray-500 dark:text-gray-400">
+                  <div className="flex-none w-full text-center py-12 text-gray-500 dark:text-gray-400 pointer-events-none">
                     No products found matching your criteria.
                   </div>
                 )}
