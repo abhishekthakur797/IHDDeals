@@ -305,15 +305,15 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
           {/* Logo */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              {isDark ? (
+              {!isDark ? (
                 <img 
-                  src="/IHDdeals Logo Redesigned.png" 
+                  src="/IHDdeals-Logo-Light.png" 
                   alt="IHD Deals Logo" 
                   className="h-12 w-auto"
                 />
               ) : (
                 <img 
-                  src="/IHDdeals-Logo-Light.png" 
+                  src="/IHDdeals Logo Redesigned.png" 
                   alt="IHD Deals Logo" 
                   className="h-12 w-auto"
                 />
