@@ -246,19 +246,12 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
           {/* Logo */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              {isDark ? (
-                <img 
-                  src="/IHDdeals Logo Redesigned.png" 
-                  alt="IHD Deals Logo" 
-                  className="h-12 w-auto"
-                />
-              ) : (
-                <img 
-                  src="/IHDdeals2.png" 
-                  alt="IHD Deals Logo" 
-                  className="h-12 w-auto"
-                />
-              )}
+              <img 
+                src="/logo.png" 
+                alt="IHD Deals Logo" 
+                className="h-12 w-auto drop-shadow-lg"
+                style={{ filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))' }}
+              />
             </div>
           </div>
           
