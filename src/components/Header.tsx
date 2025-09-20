@@ -254,7 +254,7 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
                 />
               ) : (
                 <img 
-                  src="/IHDdeals-Light-Theme.png" 
+                  src="/IHDdeals-New-Light.png" 
                   alt="IHD Deals Logo" 
                   className="h-12 w-auto"
                 />
