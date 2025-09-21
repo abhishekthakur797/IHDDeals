@@ -243,17 +243,6 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
       {/* Top Navigation */}
       <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          {/* Logo */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <img 
-                src={isDark ? "/ihd-deals-light.png" : "/ihd-deals-dark.png"} 
-                alt="IHD Deals - Your Deal Hunting Community" 
-                className="h-10 w-auto drop-shadow-sm transition-all duration-300"
-              />
-            </div>
-          </div>
-          
           {/* Desktop Navigation Buttons */}
           <div className="hidden lg:flex items-center space-x-4">
             <button
