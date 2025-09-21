@@ -246,11 +246,11 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
           {/* Logo */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-             <img 
-               src="/IHDdeals-light-copy.png" 
-               alt="IHD Deals" 
-               className="h-10 w-auto filter drop-shadow-md"
-             />
+            <img 
+              src="/ihd-deals-logo.png" 
+              alt="IHD Deals" 
+              className="h-10 w-auto"
+            />
             </div>
           </div>
           
