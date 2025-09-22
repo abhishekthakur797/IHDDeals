@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { Moon, Sun, Search, Filter, LogIn, LogOut, User as UserIcon, ArrowRight, MessageSquare, Package, Send, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Moon, Sun, Search, Filter, LogIn, LogOut, User as UserIcon, ArrowRight, MessageSquare, Package, Send, Menu, X, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { supabase, signOut } from '../lib/supabase';
 import { useTheme } from '../contexts/ThemeContext';
+import { useProfile } from '../hooks/useProfile';
 import ProductCard from './ProductCard';
 import ProductsPage from './ProductsPage';
 import CommunityPage from './CommunityPage';
+import ProfileDashboard from './ProfileDashboard';
 
 interface Product {
   id: string;
@@ -25,6 +27,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
   const { isDark, toggleTheme } = useTheme();
+  const { profile } = useProfile(user);
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
   const [loading, setLoading] = useState(true);
   const [showProductsPage, setShowProductsPage] = useState(false);
   const [showCommunityPage, setShowCommunityPage] = useState(false);
+  const [showProfileDashboard, setShowProfileDashboard] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -298,9 +302,31 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
             
             {user ? (
               <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-                  <UserIcon className="h-4 w-4" />
-                  <span>{user.email}</span>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowProfileDashboard(true)}
+                    className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    {profile?.profile_picture ? (
+                      <img
+                        src={profile.profile_picture}
+                        alt="Profile"
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <UserIcon className="h-4 w-4" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {profile?.name || user.email?.split('@')[0] || 'User'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setShowProfileDashboard(true)}
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    aria-label="Profile settings"
+                  >
+                    <Settings className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  </button>
                 </div>
                 <button
                   onClick={handleSignOut}
@@ -393,10 +419,31 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
               {/* Auth Section */}
               {user ? (
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                    <UserIcon className="h-5 w-5" />
-                    <span>{user.email}</span>
-                  </div>
+                  <button
+                    onClick={() => {
+                      setShowProfileDashboard(true);
+                      closeMobileMenu();
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
+                  >
+                    {profile?.profile_picture ? (
+                      <img
+                        src={profile.profile_picture}
+                        alt="Profile"
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <UserIcon className="h-5 w-5" />
+                    )}
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {profile?.name || user.email?.split('@')[0] || 'User'}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        View Profile
+                      </span>
+                    </div>
+                  </button>
                   <button
                     onClick={() => {
                       handleSignOut();
@@ -553,6 +600,14 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
                   user={user}
                   onClose={() => setShowCommunityPage(false)}
                   onAuthRequired={onAuthClick}
+                />
+              )}
+              
+              {/* Profile Dashboard Modal */}
+              {showProfileDashboard && user && (
+                <ProfileDashboard
+                  user={user}
+                  onClose={() => setShowProfileDashboard(false)}
                 />
               )}
             </>

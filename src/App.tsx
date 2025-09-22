@@ -6,6 +6,7 @@ import CommunitySection from './components/CommunitySection';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './components/NotificationSystem';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -37,15 +38,17 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        <Header user={user} onAuthClick={() => setShowAuthModal(true)} />
-        <CommunitySection user={user} onAuthRequired={() => setShowAuthModal(true)} />
-        <Footer />
-        
-        {showAuthModal && (
-          <AuthModal onClose={() => setShowAuthModal(false)} />
-        )}
-      </div>
+      <NotificationProvider>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+          <Header user={user} onAuthClick={() => setShowAuthModal(true)} />
+          <CommunitySection user={user} onAuthRequired={() => setShowAuthModal(true)} />
+          <Footer />
+          
+          {showAuthModal && (
+            <AuthModal onClose={() => setShowAuthModal(false)} />
+          )}
+        </div>
+      </NotificationProvider>
     </ThemeProvider>
   );
 }
