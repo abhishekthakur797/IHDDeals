@@ -48,7 +48,7 @@ export const useErrorHandler = () => {
     return errorDetails;
   }, [logError, addNotification]);
 
-  const handleDatabaseError = useCallback((error: any, context: string = 'Database') => => {
+  const handleDatabaseError = useCallback((error: any, context: string = 'Database') => {
     const errorDetails = logError(error, context);
     
     // Map common database errors to user-friendly messages
