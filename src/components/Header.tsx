@@ -245,6 +245,14 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center">
+            <div className="flex items-center space-x-3">
+              {/* Theme-responsive logo */}
+              <img
+                src={isDark ? "/IHDDeals-logo-for-dark-theme.png" : "/IHDDeals-logo-for-light-theme.png"}
+                alt="IHD Deals - Your Deal Hunting Community"
+                className="h-10 w-auto transition-all duration-300 drop-shadow-sm"
+              />
+            </div>
           </div>
 
           {/* Desktop Navigation Buttons */}
