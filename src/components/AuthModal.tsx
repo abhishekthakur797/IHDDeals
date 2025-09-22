@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, User, Chrome, Github, AlertCircle, CheckCircle } from 'lucide-react';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle } from '../lib/supabase';
 import { supabase } from '../lib/supabase';
+import { useErrorHandler } from '../hooks/useErrorHandler';
+import { useNotifications } from './NotificationSystem';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -20,6 +22,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const { handleAuthError, handleValidationError } = useErrorHandler();
+  const { addNotification } = useNotifications();
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -125,15 +129,30 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           })
         : await signInWithEmail(email, password);
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error, isSignUp ? 'User Registration' : 'User Login');
+        return;
+      }
       
       if (isSignUp) {
+        addNotification({
+          type: 'success',
+          title: 'Account Created!',
+          message: 'Please check your email for a confirmation link.',
+          duration: 8000
+        });
         setSuccess('Account created! Please check your email for a confirmation link.');
       } else {
+        addNotification({
+          type: 'success',
+          title: 'Welcome back!',
+          message: 'You have been successfully signed in.',
+          duration: 3000
+        });
         onClose();
       }
     } catch (error: any) {
-      setError(error.message || 'An error occurred');
+      handleAuthError(error, isSignUp ? 'User Registration' : 'User Login');
     } finally {
       setLoading(false);
     }
@@ -154,10 +173,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         redirectTo: `${window.location.origin}/reset-password`
       });
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error, 'Password Reset');
+        return;
+      }
+      
+      addNotification({
+        type: 'success',
+        title: 'Reset Email Sent',
+        message: 'Check your inbox for password reset instructions.',
+        duration: 6000
+      });
       setSuccess('Password reset email sent! Check your inbox.');
     } catch (error: any) {
-      setError(error.message || 'An error occurred');
+      handleAuthError(error, 'Password Reset');
     } finally {
       setLoading(false);
     }
@@ -170,9 +199,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 
     try {
       const { error } = await signInWithGoogle();
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error, 'Google OAuth');
+        return;
+      }
+      
+      addNotification({
+        type: 'success',
+        title: 'Welcome!',
+        message: 'Successfully signed in with Google.',
+        duration: 3000
+      });
     } catch (error: any) {
-      setError(error.message || 'An error occurred');
+      handleAuthError(error, 'Google OAuth');
     } finally {
       setLoading(false);
     }
@@ -190,9 +229,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           redirectTo: window.location.origin
         }
       });
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error, 'GitHub OAuth');
+        return;
+      }
+      
+      addNotification({
+        type: 'success',
+        title: 'Welcome!',
+        message: 'Successfully signed in with GitHub.',
+        duration: 3000
+      });
     } catch (error: any) {
-      setError(error.message || 'An error occurred');
+      handleAuthError(error, 'GitHub OAuth');
     } finally {
       setLoading(false);
     }
