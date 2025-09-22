@@ -119,13 +119,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       const { error } = isSignUp
         ? await supabase.auth.signUp({
             email,
-            password,
-            options: {
-              data: {
-                name: name.trim(),
-                username: username.toLowerCase().trim()
-              }
-            }
+            password
           })
         : await signInWithEmail(email, password);
 
