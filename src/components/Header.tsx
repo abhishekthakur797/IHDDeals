@@ -245,11 +245,6 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center">
-            <img
-              src="/IHDdeals-logo-for-dark-theme.png"
-              alt="IHD Deals"
-              className="h-10 w-auto"
-            />
           </div>
 
           {/* Desktop Navigation Buttons */}
