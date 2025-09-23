@@ -210,25 +210,8 @@ export class AuthService {
           .single();
 
         if (profileError || !userProfile) {
-          // Create profile if it doesn't exist
-          const profileData = {
-            id: data.user.id,
-            full_name: data.user.user_metadata?.full_name || 'User',
-            email: data.user.email || email,
-            username: data.user.user_metadata?.username || `user_${Date.now()}`,
-            password_hash: 'managed_by_supabase_auth'
-          };
-
-          await supabase.from('user_accounts').insert(profileData);
-          
-          return { 
-            success: true, 
-            user: {
-              ...profileData,
-              created_at: data.user.created_at || new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          };
+          console.error('User profile not found:', profileError);
+          return { success: false, error: 'User profile not found. Please contact support.' };
         }
 
         return { 
