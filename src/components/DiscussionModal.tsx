@@ -153,7 +153,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
       addNotification({
         type: 'error',
         title: 'Like Error',
-        message: 'Failed to update like. Please try again.',
+        message: getDetailedErrorMessage(error, 'like'),
         duration: 3000
       });
     } finally {
@@ -212,7 +212,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
       addNotification({
         type: 'error',
         title: 'Reply Error',
-        message: 'Failed to post reply. Please try again.',
+        message: getDetailedErrorMessage(error, 'reply'),
         duration: 4000
       });
     } finally {
@@ -271,7 +271,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
       addNotification({
         type: 'error',
         title: 'Like Error',
-        message: 'Failed to update like. Please try again.',
+        message: getDetailedErrorMessage(error, 'like'),
         duration: 3000
       });
     }
@@ -501,6 +501,49 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
       </div>
     </div>
   );
+};
+
+// Helper function to provide more specific error messages
+const getDetailedErrorMessage = (error: any, action: 'like' | 'reply'): string => {
+  const baseAction = action === 'like' ? 'update like' : 'post reply';
+  
+  // Network errors
+  if (error.message?.includes('fetch') || error.message?.includes('network')) {
+    return `Network error: Check your internet connection and try again.`;
+  }
+  
+  // Authentication errors
+  if (error.message?.includes('auth') || error.message?.includes('unauthorized') || error.code === 401) {
+    return `Authentication error: Please sign out and sign back in.`;
+  }
+  
+  // Permission errors
+  if (error.message?.includes('permission') || error.code === 403) {
+    return `Permission denied: You may not have access to ${baseAction}.`;
+  }
+  
+  // Rate limiting
+  if (error.message?.includes('rate') || error.code === 429) {
+    return `Too many requests: Please wait a moment before trying again.`;
+  }
+  
+  // Server errors
+  if (error.code >= 500) {
+    return `Server error: Our servers are experiencing issues. Please try again later.`;
+  }
+  
+  // Database errors
+  if (error.message?.includes('database') || error.message?.includes('connection')) {
+    return `Database error: Unable to save changes. Please try again.`;
+  }
+  
+  // Content validation errors
+  if (action === 'reply' && (error.message?.includes('validation') || error.message?.includes('length'))) {
+    return `Content error: Please check your reply length and content.`;
+  }
+  
+  // Default fallback with troubleshooting hint
+  return `Failed to ${baseAction}. Try refreshing the page or check your internet connection.`;
 };
 
 export default DiscussionModal;

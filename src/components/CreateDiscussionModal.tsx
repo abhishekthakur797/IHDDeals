@@ -67,8 +67,21 @@ const CreateDiscussionModal: React.FC<CreateDiscussionModalProps> = ({
       });
     } catch (error) {
       console.error('Error creating discussion:', error);
-      // Show error to user instead of creating mock discussion
-      alert('Failed to create discussion. Please try again.');
+      
+      // Provide specific error message based on error type
+      let errorMessage = 'Failed to create discussion. Please try again.';
+      
+      if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = 'Network error: Please check your internet connection and try again.';
+      } else if (error.message?.includes('auth') || error.code === 401) {
+        errorMessage = 'Authentication error: Please sign out and sign back in.';
+      } else if (error.message?.includes('validation')) {
+        errorMessage = 'Content error: Please check your title and description length.';
+      } else if (error.code >= 500) {
+        errorMessage = 'Server error: Our servers are experiencing issues. Please try again later.';
+      }
+      
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

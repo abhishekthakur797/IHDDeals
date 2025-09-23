@@ -147,21 +147,8 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onAuthRequired }) =
             onClick={handleCreateDiscussion}
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
           >
-              {searchTerm 
-                ? 'Try adjusting your search terms' 
-                : isAuthenticated 
-                  ? 'Be the first to start a discussion!' 
-                  : 'Sign in to start participating in discussions!'
-              }
+            <Plus className="h-5 w-5" />
             <span>Start Discussion</span>
-            {!isAuthenticated && !searchTerm && (
-              <button
-                onClick={onAuthRequired}
-                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-              >
-                Sign In to Join
-              </button>
-            )}
           </button>
         ) : (
           <button
@@ -217,8 +204,21 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onAuthRequired }) =
             No discussions found
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            {searchTerm ? 'Try adjusting your search terms' : 'Be the first to start a discussion!'}
+            {searchTerm 
+              ? 'Try adjusting your search terms' 
+              : isAuthenticated 
+                ? 'Be the first to start a discussion!' 
+                : 'Sign in to start participating in discussions!'
+            }
           </p>
+          {!isAuthenticated && !searchTerm && (
+            <button
+              onClick={onAuthRequired}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            >
+              Sign In to Join
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
