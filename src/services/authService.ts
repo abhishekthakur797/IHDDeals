@@ -147,29 +147,6 @@ export class AuthService {
           error: errorMessage
         };
       }
-      const { data: profileInsertData, error: profileError } = await supabase
-        .from('user_accounts')
-        .insert(profileData)
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError.message, profileError);
-        console.error('Profile data that failed:', profileData);
-        
-        // If profile creation fails, clean up the auth user
-        try {
-          console.log('Cleaning up auth user due to profile creation failure');
-          await supabase.auth.admin.deleteUser(authData.user.id);
-        } catch (cleanupError) {
-          console.error('Failed to cleanup auth user:', cleanupError);
-        }
-        
-        return { 
-          success: false, 
-          error: `Failed to create user profile: ${profileError.message}. Please try again.`
-        };
-      }
 
       console.log('Profile created successfully:', profileInsertData);
 
