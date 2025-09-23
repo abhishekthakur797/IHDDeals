@@ -452,7 +452,26 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
                 {replies.length === 0 && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <MessageSquare className="mx-auto h-8 w-8 mb-2" />
-                    <p>No replies yet. Be the first to respond!</p>
+                    <p className="mb-4">No replies yet. Be the first to respond!</p>
+                    {!isAuthenticated && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-sm">
+                        <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+                          Can't reply to posts?
+                        </h4>
+                        <ul className="text-blue-700 dark:text-blue-300 space-y-1 text-left">
+                          <li>• Make sure you're signed in to your account</li>
+                          <li>• Check your internet connection</li>
+                          <li>• Try refreshing the page</li>
+                          <li>• Clear your browser cache if issues persist</li>
+                        </ul>
+                        <button
+                          onClick={onAuthRequired}
+                          className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          Sign In to Reply
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -475,20 +494,36 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
                 <textarea
                   value={newReply}
                   onChange={(e) => setNewReply(e.target.value)}
-                  placeholder={isAuthenticated ? "Share your thoughts..." : "Sign in to join the discussion"}
+                  placeholder={isAuthenticated ? "Share your thoughts..." : "Sign in to join the discussion - Click the button below"}
                   disabled={!isAuthenticated}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <div className="flex justify-between items-center">
                   {!isAuthenticated && (
-                    <button
-                      type="button"
-                      onClick={onAuthRequired}
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
-                    >
-                      Sign in to reply
-                    </button>
+                    <div className="flex-1">
+                      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 mb-3">
+                        <div className="flex items-start space-x-2">
+                          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm">
+                            <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">
+                              Sign in required to reply
+                            </p>
+                            <p className="text-amber-700 dark:text-amber-300 text-xs">
+                              Create an account or sign in to join the discussion
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={onAuthRequired}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        <span>Sign In to Reply</span>
+                      </button>
+                    </div>
                   )}
                   <div className="ml-auto">
                     <button

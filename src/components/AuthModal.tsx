@@ -252,7 +252,30 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           {error && (
             <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg text-sm flex items-center animate-fade-in">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span>{error}</span>
+              <div>
+                <span className="font-medium">Error: </span>
+                <span>{error}</span>
+                {error.includes('network') && (
+                  <div className="mt-2 text-xs">
+                    <strong>Troubleshooting tips:</strong>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>Check your internet connection</li>
+                      <li>Try refreshing the page</li>
+                      <li>Disable VPN if you're using one</li>
+                    </ul>
+                  </div>
+                )}
+                {error.includes('Username is already taken') && (
+                  <div className="mt-2 text-xs">
+                    <strong>Try these alternatives:</strong>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>Add numbers to your username (e.g., username123)</li>
+                      <li>Use underscores (e.g., user_name)</li>
+                      <li>Try a variation of your preferred name</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
