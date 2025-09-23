@@ -290,8 +290,6 @@ export class AuthService {
     switch (error.message) {
       case 'Invalid login credentials':
         return 'Invalid email/username or password';
-      case 'Email not confirmed':
-        return 'Please check your email and click the confirmation link';
       case 'User already registered':
         return 'An account with this email already exists';
       case 'Password should be at least 6 characters':
