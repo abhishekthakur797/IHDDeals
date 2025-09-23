@@ -1,37 +1,31 @@
 export interface Database {
   public: {
     Tables: {
-      profiles: {
+      simple_users: {
         Row: {
           id: string;
-          name: string;
-          email: string;
+          full_name: string;
           username: string;
-          profile_picture: string | null;
-          dob: string | null;
-          sex: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null;
+          password_hash: string;
+          date_of_birth: string;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
-          name: string;
-          email: string;
+          full_name: string;
           username: string;
-          profile_picture?: string | null;
-          dob?: string | null;
-          sex?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null;
+          password_hash: string;
+          date_of_birth: string;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          name?: string;
-          email?: string;
+          full_name?: string;
           username?: string;
-          profile_picture?: string | null;
-          dob?: string | null;
-          sex?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null;
+          password_hash?: string;
+          date_of_birth?: string;
           created_at?: string;
           updated_at?: string;
         };
