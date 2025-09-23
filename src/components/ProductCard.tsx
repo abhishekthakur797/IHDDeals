@@ -3,7 +3,7 @@ import { ExternalLink } from 'lucide-react';
 
 interface FeaturedDeal {
   deal_id: number;
-  image: string;
+  image: string; 
   title: string;
   subtitle?: string;
   original_price: number;

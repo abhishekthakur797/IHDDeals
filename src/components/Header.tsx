@@ -82,10 +82,41 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
 
   const fetchProducts = async () => {
     try {
-      // Always use fallback data until database is connected
-      setProducts(getFallbackProducts());
+      // Try to fetch from Supabase first
+      const { data, error } = await supabase
+        .from('featured_deals')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching featured deals:', error);
+        // Fallback to static data if database fails
+        setProducts(getFallbackProducts());
+      } else {
+        // Transform database data to match component interface
+        const transformedProducts = (data || []).map(deal => ({
+          id: deal.deal_id.toString(),
+          name: deal.title,
+          price: deal.deal_price,
+          image_url: deal.image,
+          affiliate_link: deal.buy_now_link,
+          category: 'electronics', // Default category
+          description: deal.subtitle || '',
+          rating: 4.5, // Default rating
+          deal_id: deal.deal_id,
+          title: deal.title,
+          subtitle: deal.subtitle,
+          original_price: deal.original_price,
+          deal_price: deal.deal_price,
+          buy_now_link: deal.buy_now_link,
+          created_date: deal.created_date,
+          is_active: deal.is_active
+        }));
+        setProducts(transformedProducts);
+      }
     } catch (error) {
-      // Silently handle any errors and use fallback data
+      console.error('Error in fetchProducts:', error);
       setProducts(getFallbackProducts());
     } finally {
       setLoading(false);
@@ -95,111 +126,181 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
   const getFallbackProducts = (): Product[] => {
     return [
       {
+        id: '1',
+        name: 'Samsung Galaxy Smartphone',
+        price: 18999.00,
+        image_url: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.amazon.in/dp/example1',
+        category: 'electronics',
+        description: 'Latest Android smartphone with 128GB storage and triple camera setup',
+        rating: 4.5,
         deal_id: 1,
-        title: 'Samsung Galaxy Smartphone',
+        title: 'Samsung Galaxy Smartphone', 
         subtitle: 'Latest Android smartphone with 128GB storage and triple camera setup',
         original_price: 25999.00,
         deal_price: 18999.00,
-        image_url: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.amazon.in/dp/example1',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '2',
+        name: 'Apple MacBook Air M2',
+        price: 89999.00,
+        image_url: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.flipkart.com/example2',
+        category: 'electronics',
+        description: 'Ultra-thin laptop with M2 chip, 8GB RAM, and 256GB SSD storage',
+        rating: 4.8,
         deal_id: 2,
         title: 'Apple MacBook Air M2',
         subtitle: 'Ultra-thin laptop with M2 chip, 8GB RAM, and 256GB SSD storage',
         original_price: 119900.00,
         deal_price: 89999.00,
-        image_url: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.flipkart.com/example2',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '3',
+        name: 'Sony WH-1000XM5 Headphones',
+        price: 21990.00,
+        image_url: 'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.amazon.in/dp/example3',
+        category: 'electronics',
+        description: 'Premium noise-canceling wireless headphones with 30-hour battery life',
+        rating: 4.7,
         deal_id: 3,
         title: 'Sony WH-1000XM5 Headphones',
         subtitle: 'Premium noise-canceling wireless headphones with 30-hour battery life',
         original_price: 29990.00,
         deal_price: 21990.00,
-        image_url: 'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.amazon.in/dp/example3',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '4',
+        name: 'Apple Watch Series 9',
+        price: 38999.00,
+        image_url: 'https://images.pexels.com/photos/6686448/pexels-photo-6686448.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.apple.com/in/example4',
+        category: 'electronics',
+        description: 'Advanced fitness tracking with ECG and blood oxygen monitoring',
+        rating: 4.6,
         deal_id: 4,
         title: 'Apple Watch Series 9',
         subtitle: 'Advanced fitness tracking with ECG and blood oxygen monitoring',
         original_price: 45900.00,
         deal_price: 38999.00,
-        image_url: 'https://images.pexels.com/photos/6686448/pexels-photo-6686448.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.apple.com/in/example4',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '5',
+        name: 'JBL Charge 5 Bluetooth Speaker',
+        price: 8999.00,
+        image_url: 'https://images.pexels.com/photos/4056723/pexels-photo-4056723.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.flipkart.com/example5',
+        category: 'electronics',
+        description: 'Portable waterproof speaker with powerful bass and 20-hour playtime',
+        rating: 4.4,
         deal_id: 5,
         title: 'JBL Charge 5 Bluetooth Speaker',
         subtitle: 'Portable waterproof speaker with powerful bass and 20-hour playtime',
         original_price: 12999.00,
         deal_price: 8999.00,
-        image_url: 'https://images.pexels.com/photos/4056723/pexels-photo-4056723.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.flipkart.com/example5',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '6',
+        name: 'Logitech MX Master 3S Mouse',
+        price: 6499.00,
+        image_url: 'https://images.pexels.com/photos/2115257/pexels-photo-2115257.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.amazon.in/dp/example6',
+        category: 'electronics',
+        description: 'Advanced wireless mouse with precision scrolling and ergonomic design',
+        rating: 4.3,
         deal_id: 6,
         title: 'Logitech MX Master 3S Mouse',
         subtitle: 'Advanced wireless mouse with precision scrolling and ergonomic design',
         original_price: 8995.00,
         deal_price: 6499.00,
-        image_url: 'https://images.pexels.com/photos/2115257/pexels-photo-2115257.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.amazon.in/dp/example6',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '7',
+        name: 'Philips Air Fryer HD9252',
+        price: 9999.00,
+        image_url: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.flipkart.com/example7',
+        category: 'home',
+        description: 'Healthy cooking with rapid air technology, 4.1L capacity for family meals',
+        rating: 4.2,
         deal_id: 7,
         title: 'Philips Air Fryer HD9252',
         subtitle: 'Healthy cooking with rapid air technology, 4.1L capacity for family meals',
         original_price: 12995.00,
         deal_price: 9999.00,
-        image_url: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.flipkart.com/example7',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '8',
+        name: 'Nike Air Max 270 Sneakers',
+        price: 8999.00,
+        image_url: 'https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.nike.com/in/example8',
+        category: 'fashion',
+        description: 'Comfortable running shoes with Max Air cushioning and breathable mesh',
+        rating: 4.5,
         deal_id: 8,
         title: 'Nike Air Max 270 Sneakers',
         subtitle: 'Comfortable running shoes with Max Air cushioning and breathable mesh',
         original_price: 12995.00,
         deal_price: 8999.00,
-        image_url: 'https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.nike.com/in/example8',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '9',
+        name: 'Levi\'s 511 Slim Fit Jeans',
+        price: 2499.00,
+        image_url: 'https://images.pexels.com/photos/324028/pexels-photo-324028.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.levis.in/example9',
+        category: 'fashion',
+        description: 'Classic slim-fit denim jeans in dark wash, comfortable stretch fabric',
+        rating: 4.1,
         deal_id: 9,
         title: 'Levi\'s 511 Slim Fit Jeans',
         subtitle: 'Classic slim-fit denim jeans in dark wash, comfortable stretch fabric',
         original_price: 3999.00,
         deal_price: 2499.00,
-        image_url: 'https://images.pexels.com/photos/324028/pexels-photo-324028.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.levis.in/example9',
         created_date: new Date().toISOString(),
         is_active: true
       },
       {
+        id: '10',
+        name: 'Yoga Mat with Alignment Lines',
+        price: 1899.00,
+        image_url: 'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300',
+        affiliate_link: 'https://www.amazon.in/dp/example10',
+        category: 'sports',
+        description: 'Premium non-slip yoga mat with carrying strap and alignment guides',
+        rating: 4.0,
         deal_id: 10,
         title: 'Yoga Mat with Alignment Lines',
         subtitle: 'Premium non-slip yoga mat with carrying strap and alignment guides',
         original_price: 2999.00,
         deal_price: 1899.00,
-        image_url: 'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300',
         buy_now_link: 'https://www.amazon.in/dp/example10',
         created_date: new Date().toISOString(),
         is_active: true
@@ -583,7 +684,17 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                 {filteredProducts.slice(0, 10).map(product => (
                   <div key={product.id} className="pointer-events-none">
                     <div className="pointer-events-auto">
-                      <ProductCard product={product} />
+                      <ProductCard product={{
+                        deal_id: product.deal_id,
+                        image: product.image_url,
+                        title: product.title,
+                        subtitle: product.subtitle,
+                        original_price: product.original_price,
+                        deal_price: product.deal_price,
+                        buy_now_link: product.buy_now_link,
+                        created_date: product.created_date,
+                        is_active: product.is_active
+                      }} />
                     </div>
                   </div>
                 ))}
