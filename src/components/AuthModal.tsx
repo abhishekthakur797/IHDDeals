@@ -129,12 +129,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
           addNotification({
             type: 'success',
             title: 'Registration Successful!',
-            message: 'Welcome to IHD Deals! You can now participate in discussions.',
+            message: `Welcome ${result.user?.full_name}! Your account has been created successfully.`,
             duration: 5000
           });
           onSuccess?.();
           onClose();
         } else {
+          console.error('Registration failed:', result.error);
           setErrors({ general: result.error || 'Registration failed' });
         }
       } else {

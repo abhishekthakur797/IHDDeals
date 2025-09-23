@@ -55,11 +55,24 @@ export class AuthService {
         };
       }
 
-      // Use Supabase Auth for registration
-      const { data, error } = await supabase.auth.signUp({
+      // Check if email and username are available first
+      const emailAvailable = await this.isEmailAvailable(userData.email);
+      const usernameAvailable = await this.isUsernameAvailable(userData.username);
+
+      if (!emailAvailable) {
+        return { success: false, error: 'This email is already registered' };
+      }
+
+      if (!usernameAvailable) {
+        return { success: false, error: 'This username is already taken' };
+      }
+
+      // Step 1: Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
+          emailRedirectTo: undefined,
           data: {
             full_name: userData.full_name.trim(),
             username: userData.username.toLowerCase().trim()
@@ -67,13 +80,85 @@ export class AuthService {
         }
       });
 
-      if (error) {
-        return { success: false, error: this.getAuthErrorMessage(error) };
+      if (authError) {
+        console.error('Auth registration error:', authError);
+        return { success: false, error: this.getAuthErrorMessage(authError) };
       }
 
-      if (data.user) {
-        // Create user profile in our custom table
-        const { error: profileError } = await supabase
+      if (!authData.user) {
+        return { success: false, error: 'Registration failed. Please try again.' };
+      }
+
+      // Step 2: Create user profile in our custom table
+      const profileData = {
+        id: authData.user.id,
+        full_name: userData.full_name.trim(),
+        email: userData.email.toLowerCase().trim(),
+        username: userData.username.toLowerCase().trim(),
+        password_hash: 'managed_by_supabase_auth' // Placeholder since Supabase handles password hashing
+      };
+
+      const { data: profileInsertData, error: profileError } = await supabase
+        .from('user_accounts')
+        .insert(profileData)
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        
+        // If profile creation fails, clean up the auth user
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+        } catch (cleanupError) {
+          console.error('Failed to cleanup auth user:', cleanupError);
+        }
+        
+        return { 
+          success: false, 
+          error: 'Failed to create user profile. Please try again.' 
+        };
+      }
+
+      // Step 3: Sign in the user automatically
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: userData.email,
+        password: userData.password
+      });
+
+      if (signInError) {
+        console.error('Auto sign-in error:', signInError);
+        // Profile was created successfully, but auto sign-in failed
+        return { 
+          success: true, 
+          user: {
+            id: profileInsertData.id,
+            full_name: profileInsertData.full_name,
+            email: profileInsertData.email,
+            username: profileInsertData.username,
+            created_at: profileInsertData.created_at,
+            updated_at: profileInsertData.updated_at
+          }
+        };
+      }
+
+      return { 
+        success: true, 
+        user: {
+          id: profileInsertData.id,
+          full_name: profileInsertData.full_name,
+          email: profileInsertData.email,
+          username: profileInsertData.username,
+          created_at: profileInsertData.created_at,
+          updated_at: profileInsertData.updated_at
+        }
+      };
+
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      return { success: false, error: 'An unexpected error occurred during registration' };
+    }
+  }
           .from('user_accounts')
           .insert({
             id: data.user.id,
@@ -158,25 +243,8 @@ export class AuthService {
           .single();
 
         if (profileError || !userProfile) {
-          // Create profile if it doesn't exist
-          const profileData = {
-            id: data.user.id,
-            full_name: data.user.user_metadata?.full_name || 'User',
-            email: data.user.email || email,
-            username: data.user.user_metadata?.username || `user_${Date.now()}`,
-            password_hash: 'managed_by_supabase_auth'
-          };
-
-          await supabase.from('user_accounts').insert(profileData);
-          
-          return { 
-            success: true, 
-            user: {
-              ...profileData,
-              created_at: data.user.created_at || new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          };
+          console.error('User profile not found:', profileError);
+          return { success: false, error: 'User profile not found. Please contact support.' };
         }
 
         return { 
