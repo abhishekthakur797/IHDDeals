@@ -200,16 +200,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         const { data, error } = await supabase
           .from('simple_users')
           .insert({
-            email: email.toLowerCase().trim(),
             full_name: fullName.trim(),
             username: username.toLowerCase().trim(),
-            password_hash: passwordHash
+            password_hash: passwordHash,
+            date_of_birth: new Date().toISOString().split('T')[0] // Default date, can be updated later
           })
           .select()
           .single();
 
         if (error) {
-          setError('Failed to create account. Please try again.');
+          console.error('Signup error:', error);
+          if (error.code === '23505') {
+            if (error.message.includes('username')) {
+              setError('Username is already taken. Please choose a different one.');
+            } else {
+              setError('An account with this information already exists.');
+            }
+          } else if (error.message.includes('violates not-null constraint')) {
+            setError('Please fill in all required fields.');
+          } else {
+            setError(`Failed to create account: ${error.message}`);
+          }
           return;
         }
 
