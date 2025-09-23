@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from './lib/supabase';
-import { User } from '@supabase/supabase-js';
 import Header from './components/Header';
 import CommunitySection from './components/CommunitySection';
 import Footer from './components/Footer';
@@ -9,35 +7,40 @@ import ErrorBoundary from './components/ErrorBoundary';
 import AdminDiagnostics from './components/AdminDiagnostics';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './components/NotificationSystem';
-import { useErrorHandler } from './hooks/useErrorHandler';
+import { useAuth } from './hooks/useAuth';
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const { loading: authLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Show diagnostics in development or when there are auth issues
   const shouldShowDiagnostics = process.env.NODE_ENV === 'development' || showDiagnostics;
-  if (loading) {
+  
+  if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <ThemeProvider>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading IHD Deals...</p>
+          </div>
+        </div>
+      </ThemeProvider>
+    );
+  }
+
+  const handleCloseAuthModal = () => {
+    setShowAuthModal(false);
+  };
+
+  const handleOpenAuthModal = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleAuthRequired = () => {
+    if (!showAuthModal) {
+      setShowAuthModal(true);
       </div>
     );
   }
@@ -77,12 +80,12 @@ function App() {
               </div>
             )}
             
-            <Header user={user} onAuthClick={() => setShowAuthModal(true)} />
-            <CommunitySection user={user} onAuthRequired={() => setShowAuthModal(true)} />
+            <Header onAuthClick={handleOpenAuthModal} />
+            <CommunitySection onAuthRequired={handleAuthRequired} />
             <Footer />
             
             {showAuthModal && (
-              <AuthModal onClose={() => setShowAuthModal(false)} />
+              <AuthModal onClose={handleCloseAuthModal} />
             )}
           </div>
         </ErrorBoundary>

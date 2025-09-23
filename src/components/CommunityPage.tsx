@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
 import { X, Search, Plus, MessageSquare, Heart, Eye, Clock, Filter } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 import DiscussionCard from './DiscussionCard';
 import DiscussionModal from './DiscussionModal';
 import CreateDiscussionModal from './CreateDiscussionModal';
@@ -20,12 +20,12 @@ interface Discussion {
 }
 
 interface CommunityPageProps {
-  user: User | null;
   onClose: () => void;
   onAuthRequired: () => void;
 }
 
-const CommunityPage: React.FC<CommunityPageProps> = ({ user, onClose, onAuthRequired }) => {
+const CommunityPage: React.FC<CommunityPageProps> = ({ onClose, onAuthRequired }) => {
+  const { user, isAuthenticated, hasPermission } = useAuth();
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [filteredDiscussions, setFilteredDiscussions] = useState<Discussion[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -159,7 +159,7 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ user, onClose, onAuthRequ
   };
 
   const handleCreateDiscussion = () => {
-    if (!user) {
+    if (!isAuthenticated || !hasPermission('write')) {
       onAuthRequired();
       return;
     }
@@ -202,16 +202,31 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ user, onClose, onAuthRequ
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Community Discussions ({filteredDiscussions.length})
             </h1>
+            {!isAuthenticated && (
+              <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full">
+                Read-only mode
+              </div>
+            )}
           </div>
           
           <div className="flex items-center space-x-4">
-            <button
-              onClick={handleCreateDiscussion}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New Discussion</span>
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={handleCreateDiscussion}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Discussion</span>
+              </button>
+            ) : (
+              <button
+                onClick={onAuthRequired}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign In to Post</span>
+              </button>
+            )}
             
             <button
               onClick={onClose}
@@ -270,8 +285,21 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ user, onClose, onAuthRequ
               No discussions found
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              {searchTerm ? 'Try adjusting your search terms' : 'Be the first to start a discussion!'}
+              {searchTerm 
+                ? 'Try adjusting your search terms' 
+                : isAuthenticated 
+                  ? 'Be the first to start a discussion!' 
+                  : 'Sign in to start participating in discussions!'
+              }
             </p>
+            {!isAuthenticated && !searchTerm && (
+              <button
+                onClick={onAuthRequired}
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
+                Sign In to Join
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -343,7 +371,6 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ user, onClose, onAuthRequ
       {/* Create Discussion Modal */}
       {showCreateModal && (
         <CreateDiscussionModal
-          user={user!}
           onClose={() => setShowCreateModal(false)}
           onDiscussionCreated={handleDiscussionCreated}
         />

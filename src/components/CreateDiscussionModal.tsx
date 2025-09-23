@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { User } from '@supabase/supabase-js';
 import { X, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 interface Discussion {
   id: string;
@@ -17,22 +17,29 @@ interface Discussion {
 }
 
 interface CreateDiscussionModalProps {
-  user: User;
   onClose: () => void;
   onDiscussionCreated: (discussion: Discussion) => void;
 }
 
 const CreateDiscussionModal: React.FC<CreateDiscussionModalProps> = ({
-  user,
   onClose,
   onDiscussionCreated
 }) => {
+  const { user, isAuthenticated, hasPermission } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Security check: Ensure user is authenticated and has write permissions
+    if (!isAuthenticated || !user || !hasPermission('write')) {
+      console.error('Unauthorized attempt to create discussion');
+      onClose();
+      return;
+    }
+    
     if (!title.trim() || !content.trim()) return;
 
     setLoading(true);
@@ -41,7 +48,7 @@ const CreateDiscussionModal: React.FC<CreateDiscussionModalProps> = ({
         title: title.trim(),
         content: content.trim(),
         author_id: user.id,
-        author_name: user.email?.split('@')[0] || 'Anonymous'
+        author_name: user.fullName || user.username || 'Anonymous'
       };
 
       const { data, error } = await supabase
@@ -66,7 +73,7 @@ const CreateDiscussionModal: React.FC<CreateDiscussionModalProps> = ({
         title: title.trim(),
         content: content.trim(),
         author_id: user.id,
-        author_name: user.email?.split('@')[0] || 'Anonymous',
+        author_name: user.fullName || user.username || 'Anonymous',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         likes: 0,

@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
 import { Moon, Sun, Search, Filter, LogIn, LogOut, User as UserIcon, ArrowRight, MessageSquare, Package, Send, Menu, X, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
-import { supabase, signOut } from '../lib/supabase';
 import { useTheme } from '../contexts/ThemeContext';
-import { useProfile } from '../hooks/useProfile';
+import { useAuth } from '../hooks/useAuth';
 import ProductCard from './ProductCard';
 import ProductsPage from './ProductsPage';
 import CommunityPage from './CommunityPage';
-import ProfileDashboard from './ProfileDashboard';
 
 interface Product {
   id: string;
@@ -21,13 +18,12 @@ interface Product {
 }
 
 interface HeaderProps {
-  user: User | null;
   onAuthClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
+const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
   const { isDark, toggleTheme, isTransitioning } = useTheme();
-  const { profile } = useProfile(user);
+  const { user, isAuthenticated, signOut: handleSignOut, getUserDisplayName, loading: authLoading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,7 +32,6 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
   const [loading, setLoading] = useState(true);
   const [showProductsPage, setShowProductsPage] = useState(false);
   const [showCommunityPage, setShowCommunityPage] = useState(false);
-  const [showProfileDashboard, setShowProfileDashboard] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -225,8 +220,9 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
     setFilteredProducts(filtered);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleUserSignOut = () => {
+    handleSignOut();
+    setIsMobileMenuOpen(false); // Close mobile menu after sign out
   };
 
   const closeMobileMenu = () => {
@@ -335,41 +331,27 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
               )}
             </button>
             
-            {user ? (
+            {isAuthenticated && user ? (
               <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => setShowProfileDashboard(true)}
-                    className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors"
-                  >
-                    {profile?.profile_picture ? (
-                      <img
-                        src={profile.profile_picture}
-                        alt="Profile"
-                        className="h-6 w-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <UserIcon className="h-4 w-4" />
-                    )}
-                    <span className="hidden sm:inline">
-                      {profile?.name || user.email?.split('@')[0] || 'User'}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setShowProfileDashboard(true)}
-                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    aria-label="Profile settings"
-                  >
-                    <Settings className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                  </button>
+                <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <UserIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline font-medium">
+                    {getUserDisplayName()}
+                  </span>
                 </div>
                 <button
-                  onClick={handleSignOut}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  onClick={handleUserSignOut}
+                  className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   aria-label="Sign out"
                 >
-                  <LogOut className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign Out</span>
                 </button>
+              </div>
+            ) : authLoading ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Loading...</span>
               </div>
             ) : (
               <button
@@ -455,43 +437,34 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
               <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
               
               {/* Auth Section */}
-              {user ? (
+              {isAuthenticated && user ? (
                 <div className="space-y-2">
-                  <button
-                    onClick={() => {
-                      setShowProfileDashboard(true);
-                      closeMobileMenu();
-                    }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
-                  >
-                    {profile?.profile_picture ? (
-                      <img
-                        src={profile.profile_picture}
-                        alt="Profile"
-                        className="h-6 w-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <UserIcon className="h-5 w-5" />
-                    )}
+                  <div className="w-full flex items-center space-x-3 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <UserIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                     <div className="flex flex-col">
-                      <span className="font-medium">
-                        {profile?.name || user.email?.split('@')[0] || 'User'}
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {getUserDisplayName()}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        View Profile
+                        Signed in as @{user.username}
                       </span>
                     </div>
-                  </button>
+                  </div>
                   <button
                     onClick={() => {
-                      handleSignOut();
+                      handleUserSignOut();
                       closeMobileMenu();
                     }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left"
                   >
                     <LogOut className="h-5 w-5" />
                     <span>Sign Out</span>
                   </button>
+                </div>
+              ) : authLoading ? (
+                <div className="w-full flex items-center justify-center px-4 py-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Loading...</span>
                 </div>
               ) : (
                 <button
@@ -635,17 +608,8 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
               {/* Community Page Modal */}
               {showCommunityPage && (
                 <CommunityPage
-                  user={user}
                   onClose={() => setShowCommunityPage(false)}
                   onAuthRequired={onAuthClick}
-                />
-              )}
-              
-              {/* Profile Dashboard Modal */}
-              {showProfileDashboard && user && (
-                <ProfileDashboard
-                  user={user}
-                  onClose={() => setShowProfileDashboard(false)}
                 />
               )}
             </>

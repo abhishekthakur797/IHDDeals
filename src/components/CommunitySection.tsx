@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
 import { Search, Plus, MessageSquare, Heart, Eye, Clock, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 import DiscussionCard from './DiscussionCard';
 import DiscussionModal from './DiscussionModal';
 import CreateDiscussionModal from './CreateDiscussionModal';
@@ -21,11 +21,11 @@ interface Discussion {
 }
 
 interface CommunitySectionProps {
-  user: User | null;
   onAuthRequired: () => void;
 }
 
-const CommunitySection: React.FC<CommunitySectionProps> = ({ user, onAuthRequired }) => {
+const CommunitySection: React.FC<CommunitySectionProps> = ({ onAuthRequired }) => {
+  const { user, isAuthenticated, hasPermission } = useAuth();
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [filteredDiscussions, setFilteredDiscussions] = useState<Discussion[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -164,7 +164,7 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ user, onAuthRequire
   };
 
   const handleCreateDiscussion = () => {
-    if (!user) {
+    if (!isAuthenticated || !hasPermission('write')) {
       onAuthRequired();
       return;
     }
@@ -199,17 +199,43 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ user, onAuthRequire
             Community Discussions
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Share deals, ask questions, and connect with fellow deal hunters
+            {isAuthenticated 
+              ? "Share deals, ask questions, and connect with fellow deal hunters"
+              : "Browse discussions from our community of deal hunters"
+            }
           </p>
         </div>
         
-        <button
-          onClick={handleCreateDiscussion}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Start Discussion</span>
-        </button>
+        {isAuthenticated ? (
+          <button
+            onClick={handleCreateDiscussion}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+          >
+              {searchTerm 
+                ? 'Try adjusting your search terms' 
+                : isAuthenticated 
+                  ? 'Be the first to start a discussion!' 
+                  : 'Sign in to start participating in discussions!'
+              }
+            <span>Start Discussion</span>
+            {!isAuthenticated && !searchTerm && (
+              <button
+                onClick={onAuthRequired}
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
+                Sign In to Join
+              </button>
+            )}
+          </button>
+        ) : (
+          <button
+            onClick={onAuthRequired}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Sign In to Post</span>
+          </button>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -297,7 +323,6 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ user, onAuthRequire
       {/* Create Discussion Modal */}
       {showCreateModal && (
         <CreateDiscussionModal
-          user={user!}
           onClose={() => setShowCreateModal(false)}
           onDiscussionCreated={handleDiscussionCreated}
         />
@@ -306,7 +331,6 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ user, onAuthRequire
       {/* Community Page Modal */}
       {showCommunityPage && (
         <CommunityPage
-          user={user}
           onClose={() => setShowCommunityPage(false)}
           onAuthRequired={onAuthRequired}
         />

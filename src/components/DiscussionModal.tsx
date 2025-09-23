@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
 import { X, Heart, MessageSquare, Send, ArrowUp, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 interface Discussion {
   id: string;
@@ -29,17 +29,16 @@ interface Reply {
 
 interface DiscussionModalProps {
   discussion: Discussion;
-  user: User | null;
   onClose: () => void;
   onAuthRequired: () => void;
 }
 
 const DiscussionModal: React.FC<DiscussionModalProps> = ({
   discussion,
-  user,
   onClose,
   onAuthRequired
 }) => {
+  const { user, isAuthenticated, hasPermission } = useAuth();
   const [replies, setReplies] = useState<Reply[]>([]);
   const [newReply, setNewReply] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -49,10 +48,10 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
 
   useEffect(() => {
     fetchReplies();
-    if (user) {
+    if (isAuthenticated && user) {
       checkIfLiked();
     }
-  }, [discussion.id, user]);
+  }, [discussion.id, isAuthenticated, user]);
 
   const fetchReplies = async () => {
     try {
@@ -111,7 +110,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
   };
 
   const handleLike = async () => {
-    if (!user) {
+    if (!isAuthenticated || !user || !hasPermission('write')) {
       onAuthRequired();
       return;
     }
@@ -143,7 +142,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
+    if (!isAuthenticated || !user || !hasPermission('write')) {
       onAuthRequired();
       return;
     }
@@ -157,7 +156,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
           discussion_id: discussion.id,
           content: newReply.trim(),
           author_id: user.id,
-          author_name: user.email?.split('@')[0] || 'Anonymous',
+          author_name: user.fullName || user.username || 'Anonymous',
           parent_reply_id: replyingTo
         })
         .select()
@@ -229,15 +228,26 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
             <div className="flex items-center space-x-4 mt-4">
               <button
                 onClick={handleLike}
+                disabled={!isAuthenticated}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-colors ${
                   liked
                     ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                    : `bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 ${
+                        isAuthenticated 
+                          ? 'hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer' 
+                          : 'opacity-50 cursor-not-allowed'
+                      }`
                 }`}
+                title={!isAuthenticated ? 'Sign in to like discussions' : ''}
               >
                 <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
                 <span>{likeCount}</span>
               </button>
+              {!isAuthenticated && (
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Sign in to like and reply
+                </span>
+              )}
             </div>
           </div>
 
@@ -278,6 +288,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
                       </button>
                       <button
                         onClick={() => setReplyingTo(reply.id)}
+                        disabled={!isAuthenticated}
                         className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         Reply
@@ -330,13 +341,13 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
                 <textarea
                   value={newReply}
                   onChange={(e) => setNewReply(e.target.value)}
-                  placeholder={user ? "Share your thoughts..." : "Sign in to join the discussion"}
-                  disabled={!user}
+                  placeholder={isAuthenticated ? "Share your thoughts..." : "Sign in to join the discussion"}
+                  disabled={!isAuthenticated}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <div className="flex justify-between items-center">
-                  {!user && (
+                  {!isAuthenticated && (
                     <button
                       type="button"
                       onClick={onAuthRequired}
@@ -348,7 +359,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
                   <div className="ml-auto">
                     <button
                       type="submit"
-                      disabled={!user || !newReply.trim()}
+                      disabled={!isAuthenticated || !newReply.trim()}
                       className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
                     >
                       <Send className="h-4 w-4" />

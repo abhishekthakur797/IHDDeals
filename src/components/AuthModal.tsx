@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { X, Lock, User, AlertCircle, CheckCircle, Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNotifications } from './NotificationSystem';
+import { useAuth } from '../hooks/useAuth';
 
 interface AuthModalProps {
   onClose: () => void;
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
+  const { createSession } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
@@ -91,24 +93,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
-  /**
-   * Creates a new user session after successful authentication
-   */
-  const createUserSession = (userData: any) => {
-    // Store user session data in localStorage for persistence
-    const sessionData = {
-      id: userData.id,
-      username: userData.username,
-      fullName: userData.full_name,
-      loginTime: new Date().toISOString()
-    };
-    
-    localStorage.setItem('userSession', JSON.stringify(sessionData));
-    
-    // Trigger a custom event to notify other components of login
-    window.dispatchEvent(new CustomEvent('userLogin', { detail: sessionData }));
   };
 
   /**
@@ -221,12 +205,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         }
 
         // Create user session
-        createUserSession(data);
+        const sessionData = createSession(data);
+        
+        if (!sessionData) {
+          setError('Failed to create user session. Please try again.');
+          return;
+        }
 
         addNotification({
           type: 'success',
           title: 'Welcome back!',
-          message: `Successfully signed in as ${data.full_name}`,
+          message: `Successfully signed in as ${sessionData.fullName}`,
           duration: 3000
         });
         
