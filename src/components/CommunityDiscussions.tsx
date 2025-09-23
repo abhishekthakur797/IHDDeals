@@ -36,16 +36,27 @@ const CommunityDiscussions: React.FC<CommunityDiscussionsProps> = ({ onAuthRequi
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const fetchedPosts = await PostService.getAllPosts();
-      setPosts(fetchedPosts);
+      const { data, error } = await supabase
+        .from('discussions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching discussions:', error);
+        setPosts([]);
+        return;
+      }
+
+      setPosts(data || []);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('Error fetching discussions:', error);
       addNotification({
         type: 'error',
-        title: 'Error Loading Posts',
+        title: 'Error Loading Discussions',
         message: 'Failed to load community discussions. Please refresh the page.',
         duration: 5000
       });
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -389,65 +400,4 @@ const CommunityDiscussions: React.FC<CommunityDiscussionsProps> = ({ onAuthRequi
           </div>
         ) : (
           posts.map(post => (
-            <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
-              {/* Post Header */}
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full">
-                    <UserIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {post.author?.full_name || 'Anonymous'}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      @{post.author?.username || 'unknown'} • {formatTimestamp(post.created_at)}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Post Actions - Only for post author */}
-                {user?.id === post.user_id && (
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => startEditing(post)}
-                      className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                      title="Edit post"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                      title="Delete post"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Post Content */}
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {post.title}
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                  {post.content}
-                </p>
-              </div>
-
-              {/* Post Footer */}
-              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Clock className="h-4 w-4 mr-1" />
-                <span>Posted {formatTimestamp(post.created_at)}</span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default CommunityDiscussions;
+            <div key={post.id} className="bg-white dark:bg-gray-

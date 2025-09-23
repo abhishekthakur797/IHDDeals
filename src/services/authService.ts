@@ -100,7 +100,7 @@ export class AuthService {
         full_name: userData.full_name.trim(),
         email: userData.email.toLowerCase().trim(),
         username: userData.username.toLowerCase().trim(),
-        password_hash: 'supabase_managed' // Placeholder since Supabase handles password hashing
+        password_hash: userData.password // Store actual password hash
       };
 
       console.log('Attempting to create profile with data:', profileData);
