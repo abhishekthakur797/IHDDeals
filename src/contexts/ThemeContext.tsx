@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface ThemeContextType {
   isDark: boolean;
   toggleTheme: () => void;
+  isTransitioning: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -24,20 +25,38 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     return false;
   });
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    
+    // Add transition class to body for smooth theme switching
+    document.body.classList.add('theme-transitioning');
+    
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Remove transition class after animation completes
+    setTimeout(() => {
+      document.body.classList.remove('theme-transitioning');
+    }, 400);
   }, [isDark]);
 
-  const toggleTheme = () => setIsDark(!isDark);
+  const toggleTheme = () => {
+    setIsTransitioning(true);
+    
+    // Add a brief delay to show transition state
+    setTimeout(() => {
+      setIsDark(!isDark);
+      setIsTransitioning(false);
+    }, 50);
+  };
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, isTransitioning }}>
       {children}
     </ThemeContext.Provider>
   );

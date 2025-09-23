@@ -26,7 +26,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, isTransitioning } = useTheme();
   const { profile } = useProfile(user);
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -42,6 +42,38 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [sliderRef, setSliderRef] = useState<HTMLDivElement | null>(null);
+
+  // Ripple effect for theme toggle
+  const createRipple = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget;
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+    
+    const ripple = document.createElement('span');
+    ripple.className = 'theme-toggle-ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    
+    button.appendChild(ripple);
+    
+    setTimeout(() => {
+      ripple.remove();
+    }, 600);
+  };
+
+  const handleThemeToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    createRipple(event);
+    toggleTheme();
+    
+    // Add glow effect to the button
+    event.currentTarget.classList.add('theme-glow-animation');
+    setTimeout(() => {
+      event.currentTarget.classList.remove('theme-glow-animation');
+    }, 800);
+  };
 
   const categories = ['all', 'electronics', 'fashion', 'home', 'books', 'sports'];
 
@@ -289,14 +321,17 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
           {/* Desktop Auth & Theme Controls */}
           <div className="hidden lg:flex items-center space-x-4">
             <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={handleThemeToggle}
+              className="theme-toggle-button p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 relative overflow-hidden"
               aria-label="Toggle theme"
+              disabled={isTransitioning}
             >
-              {isDark ? (
-                <Sun className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+              {isTransitioning ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+              ) : isDark ? (
+                <Sun className="theme-icon h-5 w-5 text-gray-600 dark:text-gray-300" />
               ) : (
-                <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                <Moon className="theme-icon h-5 w-5 text-gray-600 dark:text-gray-300" />
               )}
             </button>
             
@@ -350,14 +385,17 @@ const Header: React.FC<HeaderProps> = ({ user, onAuthClick }) => {
           {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center space-x-2">
             <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={handleThemeToggle}
+              className="theme-toggle-button p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 relative overflow-hidden"
               aria-label="Toggle theme"
+              disabled={isTransitioning}
             >
-              {isDark ? (
-                <Sun className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+              {isTransitioning ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+              ) : isDark ? (
+                <Sun className="theme-icon h-5 w-5 text-gray-600 dark:text-gray-300" />
               ) : (
-                <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                <Moon className="theme-icon h-5 w-5 text-gray-600 dark:text-gray-300" />
               )}
             </button>
             

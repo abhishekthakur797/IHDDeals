@@ -22,15 +22,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <div className="flex-none w-64 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-gray-700">
+    <div className="flex-none w-64 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-gray-700 theme-transition-slow">
       <div className="relative">
         <img
           src={product.image_url}
           alt={product.name}
-          className="w-full h-40 object-cover rounded-t-lg"
+          className="w-full h-40 object-cover rounded-t-lg transition-opacity duration-300"
           loading="lazy"
         />
-        <div className="absolute top-2 right-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-full text-xs font-medium text-gray-700 dark:text-gray-300 capitalize">
+        <div className="absolute top-2 right-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-full text-xs font-medium text-gray-700 dark:text-gray-300 capitalize transition-all duration-300">
           {product.category}
         </div>
       </div>

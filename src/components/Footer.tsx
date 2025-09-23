@@ -18,10 +18,10 @@ const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+    <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto transition-all duration-400">
       {/* Newsletter Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 transition-all duration-300">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Stay Updated with Latest Deals
           </h3>
