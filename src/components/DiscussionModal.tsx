@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, MessageSquare, Send, ArrowUp, Clock } from 'lucide-react';
+import { X, Heart, MessageSquare, Send, ArrowUp, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useNotifications } from './NotificationSystem';
 
 interface Discussion {
   id: string;
@@ -39,12 +40,15 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
   onAuthRequired
 }) => {
   const { user, isAuthenticated, hasPermission } = useAuth();
+  const { addNotification } = useNotifications();
   const [replies, setReplies] = useState<Reply[]>([]);
   const [newReply, setNewReply] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(discussion.likes);
   const [loading, setLoading] = useState(true);
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [likingInProgress, setLikingInProgress] = useState(false);
 
   useEffect(() => {
     fetchReplies();
@@ -72,6 +76,8 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
   };
 
   const checkIfLiked = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('discussion_likes')
@@ -80,7 +86,10 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
         .eq('user_id', user!.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking like status:', error);
+        return;
+      }
       setLiked(!!data);
     } catch (error) {
       console.error('Error checking like status:', error);
@@ -93,27 +102,62 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
       return;
     }
 
+    if (likingInProgress) return; // Prevent double-clicking
+    setLikingInProgress(true);
+
     try {
       if (liked) {
-        await supabase
+        // Remove like
+        const { error: deleteError } = await supabase
           .from('discussion_likes')
           .delete()
           .eq('discussion_id', discussion.id)
           .eq('user_id', user.id);
+
+        if (deleteError) throw deleteError;
+
+        // Update discussion likes count
+        const { error: updateError } = await supabase
+          .from('discussions')
+          .update({ likes: Math.max(0, likeCount - 1) })
+          .eq('id', discussion.id);
+
+        if (updateError) throw updateError;
+
         setLiked(false);
         setLikeCount(prev => prev - 1);
       } else {
-        await supabase
+        // Add like
+        const { error: insertError } = await supabase
           .from('discussion_likes')
           .insert({
             discussion_id: discussion.id,
             user_id: user.id
           });
+
+        if (insertError) throw insertError;
+
+        // Update discussion likes count
+        const { error: updateError } = await supabase
+          .from('discussions')
+          .update({ likes: likeCount + 1 })
+          .eq('id', discussion.id);
+
+        if (updateError) throw updateError;
+
         setLiked(true);
         setLikeCount(prev => prev + 1);
       }
     } catch (error) {
       console.error('Error toggling like:', error);
+      addNotification({
+        type: 'error',
+        title: 'Like Error',
+        message: 'Failed to update like. Please try again.',
+        duration: 3000
+      });
+    } finally {
+      setLikingInProgress(false);
     }
   };
 
@@ -127,6 +171,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
 
     if (!newReply.trim()) return;
 
+    setSubmittingReply(true);
     try {
       const { data, error } = await supabase
         .from('discussion_replies')
@@ -142,11 +187,93 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
 
       if (error) throw error;
 
+      // Update discussion reply count
+      const { error: updateError } = await supabase
+        .from('discussions')
+        .update({ reply_count: replies.length + 1 })
+        .eq('id', discussion.id);
+
+      if (updateError) {
+        console.error('Error updating reply count:', updateError);
+      }
+
       setReplies(prev => [...prev, data]);
       setNewReply('');
       setReplyingTo(null);
+      
+      addNotification({
+        type: 'success',
+        title: 'Reply Posted',
+        message: 'Your reply has been added successfully.',
+        duration: 3000
+      });
     } catch (error) {
       console.error('Error posting reply:', error);
+      addNotification({
+        type: 'error',
+        title: 'Reply Error',
+        message: 'Failed to post reply. Please try again.',
+        duration: 4000
+      });
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const handleReplyLike = async (replyId: string, currentLikes: number, isLiked: boolean) => {
+    if (!isAuthenticated || !user || !hasPermission('write')) {
+      onAuthRequired();
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        // Remove like
+        const { error: deleteError } = await supabase
+          .from('reply_likes')
+          .delete()
+          .eq('reply_id', replyId)
+          .eq('user_id', user.id);
+
+        if (deleteError) throw deleteError;
+
+        // Update reply likes count
+        const { error: updateError } = await supabase
+          .from('discussion_replies')
+          .update({ likes: Math.max(0, currentLikes - 1) })
+          .eq('id', replyId);
+
+        if (updateError) throw updateError;
+      } else {
+        // Add like
+        const { error: insertError } = await supabase
+          .from('reply_likes')
+          .insert({
+            reply_id: replyId,
+            user_id: user.id
+          });
+
+        if (insertError) throw insertError;
+
+        // Update reply likes count
+        const { error: updateError } = await supabase
+          .from('discussion_replies')
+          .update({ likes: currentLikes + 1 })
+          .eq('id', replyId);
+
+        if (updateError) throw updateError;
+      }
+
+      // Refresh replies to show updated counts
+      await fetchReplies();
+    } catch (error) {
+      console.error('Error toggling reply like:', error);
+      addNotification({
+        type: 'error',
+        title: 'Like Error',
+        message: 'Failed to update like. Please try again.',
+        duration: 3000
+      });
     }
   };
 
@@ -206,19 +333,23 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
             <div className="flex items-center space-x-4 mt-4">
               <button
                 onClick={handleLike}
-                disabled={!isAuthenticated}
+                disabled={!isAuthenticated || likingInProgress}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-colors ${
                   liked
                     ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300'
                     : `bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 ${
                         isAuthenticated 
-                          ? 'hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer' 
+                          ? 'hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900 dark:hover:text-red-400 cursor-pointer' 
                           : 'opacity-50 cursor-not-allowed'
                       }`
                 }`}
                 title={!isAuthenticated ? 'Sign in to like discussions' : ''}
               >
-                <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+                {likingInProgress ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                ) : (
+                  <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+                )}
                 <span>{likeCount}</span>
               </button>
               {!isAuthenticated && (
@@ -260,14 +391,28 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
                       {reply.content}
                     </p>
                     <div className="flex items-center space-x-3">
-                      <button className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                      <button 
+                        onClick={() => handleReplyLike(reply.id, reply.likes, false)}
+                        disabled={!isAuthenticated}
+                        className={`flex items-center space-x-1 text-sm transition-colors ${
+                          isAuthenticated 
+                            ? 'text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 cursor-pointer' 
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        title={!isAuthenticated ? 'Sign in to like replies' : 'Like this reply'}
+                      >
                         <Heart className="h-3 w-3" />
                         <span>{reply.likes}</span>
                       </button>
                       <button
                         onClick={() => setReplyingTo(reply.id)}
                         disabled={!isAuthenticated}
-                        className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                        className={`text-sm transition-colors ${
+                          isAuthenticated
+                            ? 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer'
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        title={!isAuthenticated ? 'Sign in to reply' : 'Reply to this comment'}
                       >
                         Reply
                       </button>
@@ -337,11 +482,15 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
                   <div className="ml-auto">
                     <button
                       type="submit"
-                      disabled={!isAuthenticated || !newReply.trim()}
+                      disabled={!isAuthenticated || !newReply.trim() || submittingReply}
                       className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
                     >
-                      <Send className="h-4 w-4" />
-                      <span>Reply</span>
+                      {submittingReply ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                      <span>{submittingReply ? 'Posting...' : 'Reply'}</span>
                     </button>
                   </div>
                 </div>
