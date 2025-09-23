@@ -94,7 +94,7 @@ export class AuthService {
 
       console.log('Auth user created successfully:', authData.user.id);
 
-      // Step 2: Create user profile in our custom table
+      // Step 2: Create user profile using service role context
       const profileData = {
         id: authData.user.id,
         full_name: userData.full_name.trim(),
@@ -105,6 +105,48 @@ export class AuthService {
 
       console.log('Attempting to create profile with data:', profileData);
 
+      // Use service role client for profile creation to bypass RLS
+      const { data: profileInsertData, error: profileError } = await supabase
+        .from('user_accounts')
+        .insert(profileData)
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError.message, profileError);
+        console.error('Profile error details:', {
+          code: profileError.code,
+          details: profileError.details,
+          hint: profileError.hint,
+          message: profileError.message
+        });
+        console.error('Profile data that failed:', profileData);
+        
+        // If profile creation fails, clean up the auth user
+        try {
+          console.log('Cleaning up auth user due to profile creation failure');
+          await supabase.auth.admin.deleteUser(authData.user.id);
+        } catch (cleanupError) {
+          console.error('Failed to cleanup auth user:', cleanupError);
+        }
+        
+        // Provide more specific error message based on error code
+        let errorMessage = 'Failed to create user profile. ';
+        if (profileError.code === '42501') {
+          errorMessage += 'Permission denied. Please contact support.';
+        } else if (profileError.code === '23505') {
+          errorMessage += 'Email or username already exists.';
+        } else if (profileError.message?.includes('row-level security')) {
+          errorMessage += 'Security policy violation. Please contact support.';
+        } else {
+          errorMessage += `Database error: ${profileError.message}`;
+        }
+        
+        return { 
+          success: false, 
+          error: errorMessage
+        };
+      }
       const { data: profileInsertData, error: profileError } = await supabase
         .from('user_accounts')
         .insert(profileData)
