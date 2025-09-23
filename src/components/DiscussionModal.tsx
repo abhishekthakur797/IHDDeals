@@ -81,9 +81,6 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
         console.error('Fallback query also failed:', fallbackError);
         setReplies([]);
       }
-    } catch (error) {
-      console.error('Error fetching replies:', error);
-      setReplies([]);
     } finally {
       setLoading(false);
     }
