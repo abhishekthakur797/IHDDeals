@@ -404,46 +404,48 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
               </div>
             )}
 
-            {/* Username Field */}
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Username *
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => handleUsernameChange(e.target.value)}
-                  placeholder="Choose a username"
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
-                  required
-                  minLength={3}
-                />
-                {/* Username Availability Indicator */}
-                {isSignUp && checkingUsername && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  </div>
-                )}
-                {isSignUp && !checkingUsername && usernameAvailable !== null && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    {usernameAvailable ? (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-500" />
-                    )}
-                  </div>
+            {/* Username Field - Signup Only */}
+            {isSignUp && (
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Username *
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => handleUsernameChange(e.target.value)}
+                    placeholder="Choose a username"
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                    required
+                    minLength={3}
+                  />
+                  {/* Username Availability Indicator */}
+                  {checkingUsername && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable !== null && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {usernameAvailable ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Username Availability Message */}
+                {username.length >= 3 && usernameAvailable !== null && (
+                  <p className={`text-xs mt-1 transition-colors duration-200 ${usernameAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {usernameAvailable ? '✓ Username is available' : '✗ Username is already taken'}
+                  </p>
                 )}
               </div>
-              {/* Username Availability Message */}
-              {isSignUp && username.length >= 3 && usernameAvailable !== null && (
-                <p className={`text-xs mt-1 transition-colors duration-200 ${usernameAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                  {usernameAvailable ? '✓ Username is available' : '✗ Username is already taken'}
-                </p>
-              )}
-            </div>
+            )}
 
             {/* Email or Username Field - Signin Only */}
             {!isSignUp && (
