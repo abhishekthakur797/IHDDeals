@@ -67,12 +67,14 @@ export class AuthService {
         return { success: false, error: 'This username is already taken' };
       }
 
-      // Step 1: Create auth user
+      console.log('Starting registration for:', userData.email);
+
+      // Step 1: Create auth user with email confirmation disabled
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
-          emailRedirectTo: undefined,
+          emailRedirectTo: undefined, // Disable email confirmation
           data: {
             full_name: userData.full_name.trim(),
             username: userData.username.toLowerCase().trim()
@@ -81,13 +83,16 @@ export class AuthService {
       });
 
       if (authError) {
-        console.error('Auth registration error:', authError);
+        console.error('Auth registration error:', authError.message, authError);
         return { success: false, error: this.getAuthErrorMessage(authError) };
       }
 
       if (!authData.user) {
+        console.error('No user returned from auth signup');
         return { success: false, error: 'Registration failed. Please try again.' };
       }
+
+      console.log('Auth user created successfully:', authData.user.id);
 
       // Step 2: Create user profile in our custom table
       const profileData = {
@@ -95,8 +100,10 @@ export class AuthService {
         full_name: userData.full_name.trim(),
         email: userData.email.toLowerCase().trim(),
         username: userData.username.toLowerCase().trim(),
-        password_hash: 'managed_by_supabase_auth' // Placeholder since Supabase handles password hashing
+        password_hash: 'supabase_managed' // Placeholder since Supabase handles password hashing
       };
+
+      console.log('Attempting to create profile with data:', profileData);
 
       const { data: profileInsertData, error: profileError } = await supabase
         .from('user_accounts')
@@ -105,10 +112,12 @@ export class AuthService {
         .single();
 
       if (profileError) {
-        console.error('Profile creation error:', profileError);
+        console.error('Profile creation error:', profileError.message, profileError);
+        console.error('Profile data that failed:', profileData);
         
         // If profile creation fails, clean up the auth user
         try {
+          console.log('Cleaning up auth user due to profile creation failure');
           await supabase.auth.admin.deleteUser(authData.user.id);
         } catch (cleanupError) {
           console.error('Failed to cleanup auth user:', cleanupError);
@@ -116,9 +125,11 @@ export class AuthService {
         
         return { 
           success: false, 
-          error: 'Failed to create user profile. Please try again.' 
+          error: `Failed to create user profile: ${profileError.message}. Please try again.`
         };
       }
+
+      console.log('Profile created successfully:', profileInsertData);
 
       // Step 3: Sign in the user automatically
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -127,7 +138,7 @@ export class AuthService {
       });
 
       if (signInError) {
-        console.error('Auto sign-in error:', signInError);
+        console.error('Auto sign-in error:', signInError.message, signInError);
         // Profile was created successfully, but auto sign-in failed
         return { 
           success: true, 
@@ -142,6 +153,8 @@ export class AuthService {
         };
       }
 
+      console.log('Registration completed successfully for:', userData.email);
+
       return { 
         success: true, 
         user: {
@@ -155,7 +168,7 @@ export class AuthService {
       };
 
     } catch (error: any) {
-      console.error('Registration error:', error);
+      console.error('Unexpected registration error:', error.message, error);
       return { success: false, error: 'An unexpected error occurred during registration' };
     }
   }
@@ -289,14 +302,31 @@ export class AuthService {
    */
   static async isUsernameAvailable(username: string): Promise<boolean> {
     try {
+      if (!username || username.trim().length < 3) {
+        return false;
+      }
+
       const { data, error } = await supabase
         .from('user_accounts')
         .select('username')
         .eq('username', username.toLowerCase())
         .single();
 
-      return error?.code === 'PGRST116'; // No rows returned means username is available
+      // PGRST116 means no rows found, which means username is available
+      if (error?.code === 'PGRST116') {
+        return true;
+      }
+      
+      // If we got data, username is taken
+      if (data) {
+        return false;
+      }
+      
+      // For other errors, assume not available for safety
+      console.error('Username availability check error:', error);
+      return false;
     } catch (error) {
+      console.error('Username availability check exception:', error);
       return false;
     }
   }
@@ -306,14 +336,31 @@ export class AuthService {
    */
   static async isEmailAvailable(email: string): Promise<boolean> {
     try {
+      if (!email || !email.includes('@')) {
+        return false;
+      }
+
       const { data, error } = await supabase
         .from('user_accounts')
         .select('email')
         .eq('email', email.toLowerCase())
         .single();
 
-      return error?.code === 'PGRST116'; // No rows returned means email is available
+      // PGRST116 means no rows found, which means email is available
+      if (error?.code === 'PGRST116') {
+        return true;
+      }
+      
+      // If we got data, email is taken
+      if (data) {
+        return false;
+      }
+      
+      // For other errors, assume not available for safety
+      console.error('Email availability check error:', error);
+      return false;
     } catch (error) {
+      console.error('Email availability check exception:', error);
       return false;
     }
   }
