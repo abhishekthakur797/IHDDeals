@@ -41,9 +41,8 @@ function App() {
   const handleAuthRequired = () => {
     if (!showAuthModal) {
       setShowAuthModal(true);
-      </div>
-    );
-  }
+    }
+  };
 
   return (
     <ThemeProvider>
