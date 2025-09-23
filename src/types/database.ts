@@ -1,31 +1,31 @@
 export interface Database {
   public: {
     Tables: {
-      simple_users: {
+      user_accounts: {
         Row: {
           id: string;
           full_name: string;
+          email: string;
           username: string;
           password_hash: string;
-          date_of_birth: string;
           created_at: string;
           updated_at: string;
         };
         Insert: {
-          id: string;
+          id?: string;
           full_name: string;
+          email: string;
           username: string;
           password_hash: string;
-          date_of_birth: string;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           full_name?: string;
+          email?: string;
           username?: string;
           password_hash?: string;
-          date_of_birth?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -70,7 +70,7 @@ export interface Database {
           id: string;
           title: string;
           content: string;
-          author_id: string;
+          author_id: string | null;
           author_name: string;
           created_at: string;
           updated_at: string;
@@ -82,7 +82,7 @@ export interface Database {
           id?: string;
           title: string;
           content: string;
-          author_id: string;
+          author_id?: string | null;
           author_name: string;
           created_at?: string;
           updated_at?: string;
@@ -94,7 +94,7 @@ export interface Database {
           id?: string;
           title?: string;
           content?: string;
-          author_id?: string;
+          author_id?: string | null;
           author_name?: string;
           created_at?: string;
           updated_at?: string;
@@ -108,7 +108,7 @@ export interface Database {
           id: string;
           discussion_id: string;
           content: string;
-          author_id: string;
+          author_id: string | null;
           author_name: string;
           parent_reply_id: string | null;
           created_at: string;
@@ -118,7 +118,7 @@ export interface Database {
           id?: string;
           discussion_id: string;
           content: string;
-          author_id: string;
+          author_id?: string | null;
           author_name: string;
           parent_reply_id?: string | null;
           created_at?: string;
@@ -128,7 +128,7 @@ export interface Database {
           id?: string;
           discussion_id?: string;
           content?: string;
-          author_id?: string;
+          author_id?: string | null;
           author_name?: string;
           parent_reply_id?: string | null;
           created_at?: string;

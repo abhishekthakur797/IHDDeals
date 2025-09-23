@@ -156,7 +156,7 @@ export const useAuth = () => {
       const sessionData = {
         id: userData.id,
         username: userData.username,
-        fullName: userData.full_name,
+        fullName: userData.full_name || userData.fullName,
         loginTime: new Date().toISOString()
       };
       
