@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, User, AlertCircle, CheckCircle, Calendar, Eye, EyeOff } from 'lucide-react';
+import { X, Lock, User, AlertCircle, CheckCircle, Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNotifications } from './NotificationSystem';
 
@@ -19,10 +19,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const [success, setSuccess] = useState('');
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
-  
-  // Password visibility states
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { addNotification } = useNotifications();
 
@@ -245,17 +241,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   };
 
   /**
-   * Toggle password visibility for better UX
-   */
-  const togglePasswordVisibility = (field: 'password' | 'confirmPassword') => {
-    if (field === 'password') {
-      setShowPassword(!showPassword);
-    } else {
-      setShowConfirmPassword(!showConfirmPassword);
-    }
-  };
-
-  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full transition-all duration-400 transform max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
@@ -387,27 +372,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                   required
                   minLength={8}
                 />
-                {/* Password Visibility Toggle */}
-                <button
-                  type="button"
-                  onClick={() => togglePasswordVisibility('password')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200 flex items-center justify-center w-6 h-6"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Must be at least 8 characters long
@@ -424,27 +396,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <input
                     id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"
-                    className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                     required
                     minLength={8}
                   />
-                  {/* Confirm Password Visibility Toggle */}
-                  <button
-                    type="button"
-                    onClick={() => togglePasswordVisibility('confirmPassword')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200 flex items-center justify-center w-6 h-6"
-                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
                 </div>
                 {/* Password Match Indicator */}
                 {confirmPassword && (
