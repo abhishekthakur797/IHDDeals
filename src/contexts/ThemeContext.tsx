@@ -31,7 +31,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     
     // Add transition class to body for smooth theme switching
-    document.body.classList.add('theme-transitioning');
+    if (document.body) {
+      document.body.classList.add('theme-transitioning');
+    }
     
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -41,7 +43,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     // Remove transition class after animation completes
     setTimeout(() => {
-      document.body.classList.remove('theme-transitioning');
+      if (document.body) {
+        document.body.classList.remove('theme-transitioning');
+      }
     }, 400);
   }, [isDark]);
 
