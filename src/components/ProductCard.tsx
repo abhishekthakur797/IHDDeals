@@ -102,12 +102,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <ExternalLink className="h-3 w-3" />
         </button>
         
-        {/* Deal Metadata */}
-        <div className="mt-2 text-center">
-          <span className="text-xs text-gray-400 dark:text-gray-500">
-            Deal ID: #{product.deal_id}
-          </span>
-        </div>
       </div>
     </div>
   );
