@@ -201,6 +201,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           .from('simple_users')
           .insert({
             full_name: fullName.trim(),
+            email: email.toLowerCase().trim(),
             username: username.toLowerCase().trim(),
             password_hash: passwordHash,
             date_of_birth: new Date().toISOString().split('T')[0] // Default date, can be updated later
