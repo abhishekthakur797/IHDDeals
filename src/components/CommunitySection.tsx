@@ -57,85 +57,21 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onAuthRequired }) =
 
   const fetchDiscussions = async () => {
     try {
-      // Always use mock data until database is connected
-      setDiscussions([
-        {
-          id: '1',
-          title: 'Best deals for Black Friday 2025?',
-          content: 'Hey everyone! Black Friday is coming up and I\'m looking for the best deals on electronics. What are your top recommendations?',
-          author_id: 'demo-user',
-          author_name: 'Deal Hunter',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          likes: 23,
-          views: 156,
-          reply_count: 8
-        },
-        {
-          id: '2',
-          title: 'Smart home setup on a budget',
-          content: 'I\'m trying to set up a smart home without breaking the bank. Any suggestions for affordable smart devices that actually work well?',
-          author_id: 'demo-user-2',
-          author_name: 'Tech Newbie',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          updated_at: new Date(Date.now() - 86400000).toISOString(),
-          likes: 15,
-          views: 89,
-          reply_count: 5
-        },
-        {
-          id: '3',
-          title: 'Wireless headphones under $100',
-          content: 'Can anyone recommend good wireless headphones under $100? I need them for commuting and working out.',
-          author_id: 'demo-user-3',
-          author_name: 'Music Lover',
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          updated_at: new Date(Date.now() - 172800000).toISOString(),
-          likes: 31,
-          views: 203,
-          reply_count: 12
-        }
-      ]);
+      const { data, error } = await supabase
+        .from('discussions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching discussions:', error);
+        setDiscussions([]);
+        return;
+      }
+
+      setDiscussions(data || []);
     } catch (error) {
-      // Silently handle errors and use mock data
-      setDiscussions([
-        {
-          id: '1',
-          title: 'Best deals for Black Friday 2025?',
-          content: 'Hey everyone! Black Friday is coming up and I\'m looking for the best deals on electronics. What are your top recommendations?',
-          author_id: 'demo-user',
-          author_name: 'Deal Hunter',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          likes: 23,
-          views: 156,
-          reply_count: 8
-        },
-        {
-          id: '2',
-          title: 'Smart home setup on a budget',
-          content: 'I\'m trying to set up a smart home without breaking the bank. Any suggestions for affordable smart devices that actually work well?',
-          author_id: 'demo-user-2',
-          author_name: 'Tech Newbie',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          updated_at: new Date(Date.now() - 86400000).toISOString(),
-          likes: 15,
-          views: 89,
-          reply_count: 5
-        },
-        {
-          id: '3',
-          title: 'Wireless headphones under $100',
-          content: 'Can anyone recommend good wireless headphones under $100? I need them for commuting and working out.',
-          author_id: 'demo-user-3',
-          author_name: 'Music Lover',
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          updated_at: new Date(Date.now() - 172800000).toISOString(),
-          likes: 31,
-          views: 203,
-          reply_count: 12
-        }
-      ]);
+      console.error('Error fetching discussions:', error);
+      setDiscussions([]);
     } finally {
       setLoading(false);
     }

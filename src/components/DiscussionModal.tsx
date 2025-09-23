@@ -65,29 +65,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
       setReplies(data || []);
     } catch (error) {
       console.error('Error fetching replies:', error);
-      // Mock replies for demo
-      setReplies([
-        {
-          id: '1',
-          discussion_id: discussion.id,
-          content: 'Great question! I found some amazing deals last year on Amazon and Best Buy. The key is to start checking prices early.',
-          author_id: 'reply-user-1',
-          author_name: 'Bargain Hunter',
-          parent_reply_id: null,
-          created_at: new Date(Date.now() - 7200000).toISOString(),
-          likes: 5
-        },
-        {
-          id: '2',
-          discussion_id: discussion.id,
-          content: 'I totally agree! Also check out Honey browser extension - it automatically applies coupon codes.',
-          author_id: 'reply-user-2',
-          author_name: 'Deal Expert',
-          parent_reply_id: '1',
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          likes: 3
-        }
-      ]);
+      setReplies([]);
     } finally {
       setLoading(false);
     }

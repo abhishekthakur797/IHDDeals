@@ -63,73 +63,16 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ onClose, onAuthRequired }
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching discussions:', error);
+        setDiscussions([]);
+        return;
+      }
+
       setDiscussions(data || []);
     } catch (error) {
-      console.warn('Error fetching discussions, using mock data:', error);
-      // Fallback mock data for demo
-      setDiscussions([
-        {
-          id: '1',
-          title: 'Best deals for Black Friday 2025?',
-          content: 'Hey everyone! Black Friday is coming up and I\'m looking for the best deals on electronics. What are your top recommendations?',
-          author_id: 'demo-user',
-          author_name: 'Deal Hunter',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          likes: 23,
-          views: 156,
-          reply_count: 8
-        },
-        {
-          id: '2',
-          title: 'Smart home setup on a budget',
-          content: 'I\'m trying to set up a smart home without breaking the bank. Any suggestions for affordable smart devices that actually work well?',
-          author_id: 'demo-user-2',
-          author_name: 'Tech Newbie',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          updated_at: new Date(Date.now() - 86400000).toISOString(),
-          likes: 15,
-          views: 89,
-          reply_count: 5
-        },
-        {
-          id: '3',
-          title: 'Wireless headphones under $100',
-          content: 'Can anyone recommend good wireless headphones under $100? I need them for commuting and working out.',
-          author_id: 'demo-user-3',
-          author_name: 'Music Lover',
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          updated_at: new Date(Date.now() - 172800000).toISOString(),
-          likes: 31,
-          views: 203,
-          reply_count: 12
-        },
-        {
-          id: '4',
-          title: 'Gaming laptop recommendations under $1000',
-          content: 'Looking for a decent gaming laptop that won\'t break the bank. Any suggestions for good performance under $1000?',
-          author_id: 'demo-user-4',
-          author_name: 'Gamer123',
-          created_at: new Date(Date.now() - 259200000).toISOString(),
-          updated_at: new Date(Date.now() - 259200000).toISOString(),
-          likes: 18,
-          views: 134,
-          reply_count: 7
-        },
-        {
-          id: '5',
-          title: 'Best kitchen appliances for small apartments',
-          content: 'Moving to a small apartment and need space-saving kitchen appliances. What are your must-haves?',
-          author_id: 'demo-user-5',
-          author_name: 'CookingEnthusiast',
-          created_at: new Date(Date.now() - 345600000).toISOString(),
-          updated_at: new Date(Date.now() - 345600000).toISOString(),
-          likes: 12,
-          views: 98,
-          reply_count: 4
-        }
-      ]);
+      console.error('Error fetching discussions:', error);
+      setDiscussions([]);
     } finally {
       setLoading(false);
     }

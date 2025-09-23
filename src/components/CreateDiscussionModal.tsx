@@ -67,20 +67,8 @@ const CreateDiscussionModal: React.FC<CreateDiscussionModalProps> = ({
       });
     } catch (error) {
       console.error('Error creating discussion:', error);
-      // For demo purposes, create a mock discussion
-      const mockDiscussion: Discussion = {
-        id: Date.now().toString(),
-        title: title.trim(),
-        content: content.trim(),
-        author_id: user.id,
-        author_name: user.fullName || user.username || 'Anonymous',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        likes: 0,
-        views: 0,
-        reply_count: 0
-      };
-      onDiscussionCreated(mockDiscussion);
+      // Show error to user instead of creating mock discussion
+      alert('Failed to create discussion. Please try again.');
     } finally {
       setLoading(false);
     }
