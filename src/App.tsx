@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
-import CommunitySection from './components/CommunitySection';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -80,7 +79,6 @@ function App() {
             )}
             
             <Header onAuthClick={handleOpenAuthModal} />
-            <CommunitySection onAuthRequired={handleAuthRequired} />
             <Footer />
             
             {showAuthModal && (

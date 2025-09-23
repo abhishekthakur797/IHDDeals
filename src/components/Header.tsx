@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Moon, Sun, Search, Filter, LogIn, LogOut, User as UserIcon, ArrowRight, MessageSquare, Package, Send, Menu, X, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
+import CommunityDiscussions from './CommunityDiscussions';
 import ProductCard from './ProductCard';
 import ProductsPage from './ProductsPage';
-import CommunityPage from './CommunityPage';
 
 interface Product {
   id: string;
@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
   const [sortBy, setSortBy] = useState('name');
   const [loading, setLoading] = useState(true);
   const [showProductsPage, setShowProductsPage] = useState(false);
-  const [showCommunityPage, setShowCommunityPage] = useState(false);
+  const [showCommunityDiscussions, setShowCommunityDiscussions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -410,7 +410,7 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
             </button>
             
             <button
-              onClick={() => setShowCommunityPage(true)}
+              onClick={() => setShowCommunityDiscussions(true)}
               className="flex items-center space-x-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <MessageSquare className="h-4 w-4" />
@@ -525,7 +525,7 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
               
               <button
                 onClick={() => {
-                  setShowCommunityPage(true);
+                  setShowCommunityDiscussions(true);
                   closeMobileMenu();
                 }}
                 className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
@@ -728,11 +728,23 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
               )}
               
               {/* Community Page Modal */}
-              {showCommunityPage && (
-                <CommunityPage
-                  onClose={() => setShowCommunityPage(false)}
+              {showCommunityDiscussions && (
+                <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 overflow-y-auto">
+                  <div className="min-h-screen">
+                    <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                      <button
+                        onClick={() => setShowCommunityDiscussions(false)}
+                        className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                        <span>Close Discussions</span>
+                      </button>
+                    </div>
+                    <CommunityDiscussions
                   onAuthRequired={onAuthClick}
-                />
+                    />
+                  </div>
+                </div>
               )}
             </>
           )}
