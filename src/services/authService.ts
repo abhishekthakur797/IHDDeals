@@ -159,39 +159,6 @@ export class AuthService {
       return { success: false, error: 'An unexpected error occurred during registration' };
     }
   }
-          .from('user_accounts')
-          .insert({
-            id: data.user.id,
-            full_name: userData.full_name.trim(),
-            email: userData.email.toLowerCase().trim(),
-            username: userData.username.toLowerCase().trim(),
-            password_hash: 'managed_by_supabase_auth' // Placeholder since Supabase handles password hashing
-          });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          // Don't fail registration if profile creation fails
-        }
-
-        return { 
-          success: true, 
-          user: {
-            id: data.user.id,
-            full_name: userData.full_name.trim(),
-            email: userData.email.toLowerCase().trim(),
-            username: userData.username.toLowerCase().trim(),
-            created_at: data.user.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        };
-      }
-
-      return { success: false, error: 'Registration failed. Please try again.' };
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      return { success: false, error: 'An unexpected error occurred during registration' };
-    }
-  }
 
   /**
    * Logs in a user
@@ -243,8 +210,25 @@ export class AuthService {
           .single();
 
         if (profileError || !userProfile) {
-          console.error('User profile not found:', profileError);
-          return { success: false, error: 'User profile not found. Please contact support.' };
+          // Create profile if it doesn't exist
+          const profileData = {
+            id: data.user.id,
+            full_name: data.user.user_metadata?.full_name || 'User',
+            email: data.user.email || email,
+            username: data.user.user_metadata?.username || `user_${Date.now()}`,
+            password_hash: 'managed_by_supabase_auth'
+          };
+
+          await supabase.from('user_accounts').insert(profileData);
+          
+          return { 
+            success: true, 
+            user: {
+              ...profileData,
+              created_at: data.user.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          };
         }
 
         return { 
