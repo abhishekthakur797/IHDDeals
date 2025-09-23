@@ -463,7 +463,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
             <button
               type="submit"
               disabled={loading || (isSignUp && usernameAvailable === false)}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center transform hover:scale-105 disabled:hover:scale-100"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -482,7 +482,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                 setSuccess('');
                 setUsernameAvailable(null);
               }}
-              className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200 hover:underline"
+              className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200 hover:underline inline-block"
             >
               {isSignUp 
                 ? 'Already have an account? Sign in here' 
