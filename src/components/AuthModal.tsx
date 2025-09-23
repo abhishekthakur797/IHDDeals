@@ -240,7 +240,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     }
   };
 
-  /**
+  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full transition-all duration-400 transform max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
