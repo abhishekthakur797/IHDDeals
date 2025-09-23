@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, User, AlertCircle, CheckCircle, Calendar } from 'lucide-react';
+import { X, Lock, User, AlertCircle, CheckCircle, Mail } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNotifications } from './NotificationSystem';
 import { useAuth } from '../hooks/useAuth';
@@ -12,38 +12,40 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const { createSession } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
+  const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
   
   const { addNotification } = useNotifications();
 
   /**
-   * Validates password strength - minimum 8 characters
+   * Validates email format using standard regex
    */
-  const validatePassword = (password: string) => {
-    return password.length >= 8;
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   /**
-   * Validates user age - must be at least 13 years old
+   * Validates password strength - minimum 6 characters
    */
-  const validateAge = (dateOfBirth: string) => {
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      return age - 1 >= 13;
-    }
-    return age >= 13;
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
+
+  /**
+   * Detects if input is email or username
+   */
+  const isEmailFormat = (input: string) => {
+    return input.includes('@') && validateEmail(input);
   };
 
   /**
@@ -72,6 +74,31 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   };
 
   /**
+   * Checks if email is available in the database
+   */
+  const checkEmailAvailability = async (email: string) => {
+    if (!email.trim() || !validateEmail(email)) {
+      setEmailAvailable(null);
+      return;
+    }
+
+    setCheckingEmail(true);
+    try {
+      const { data, error } = await supabase
+        .from('simple_users')
+        .select('email')
+        .eq('email', email.toLowerCase());
+
+      if (error) throw error;
+      setEmailAvailable(data.length === 0);
+    } catch (error) {
+      setEmailAvailable(null);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
+
+  /**
    * Handles username input changes with debounced availability checking
    */
   const handleUsernameChange = (value: string) => {
@@ -80,6 +107,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     const timeoutId = setTimeout(() => {
       checkUsernameAvailability(value);
     }, 500);
+    return () => clearTimeout(timeoutId);
+  };
+
+  /**
+   * Handles email input changes with debounced availability checking
+   */
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    const timeoutId = setTimeout(() => checkEmailAvailability(value), 500);
     return () => clearTimeout(timeoutId);
   };
 
@@ -111,6 +147,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       return;
     }
 
+    if (!email.trim() && isSignUp) {
+      setError('Email address is required');
+      setLoading(false);
+      return;
+    }
+
     if (!username.trim() || username.length < 3) {
       setError('Username must be at least 3 characters long');
       setLoading(false);
@@ -123,22 +165,22 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       return;
     }
 
+    if (!emailOrUsername.trim() && !isSignUp) {
+      setError('Email or username is required');
+      setLoading(false);
+      return;
+    }
+
     if (isSignUp) {
       // Additional signup validation
-      if (password !== confirmPassword) {
-        setError('Passwords do not match');
+      if (!validateEmail(email)) {
+        setError('Please enter a valid email address');
         setLoading(false);
         return;
       }
 
-      if (!dateOfBirth) {
-        setError('Date of birth is required');
-        setLoading(false);
-        return;
-      }
-
-      if (!validateAge(dateOfBirth)) {
-        setError('You must be at least 13 years old to create an account');
+      if (emailAvailable === false) {
+        setError('Email address is already registered');
         setLoading(false);
         return;
       }
@@ -158,10 +200,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         const { data, error } = await supabase
           .from('simple_users')
           .insert({
+            email: email.toLowerCase().trim(),
             full_name: fullName.trim(),
             username: username.toLowerCase().trim(),
-            password_hash: passwordHash,
-            date_of_birth: dateOfBirth
+            password_hash: passwordHash
           })
           .select()
           .single();
@@ -183,24 +225,34 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         
         // Clear form fields
         setFullName('');
+        setEmail('');
         setUsername('');
         setPassword('');
-        setConfirmPassword('');
-        setDateOfBirth('');
         
       } else {
         // User Sign-in Process
         const passwordHash = await hashPassword(password);
+        const isEmail = isEmailFormat(emailOrUsername);
         
-        const { data, error } = await supabase
+        let query = supabase
           .from('simple_users')
           .select('*')
-          .eq('username', username.toLowerCase().trim())
-          .eq('password_hash', passwordHash)
-          .single();
+          .eq('password_hash', passwordHash);
+        
+        if (isEmail) {
+          query = query.eq('email', emailOrUsername.toLowerCase().trim());
+        } else {
+          query = query.eq('username', emailOrUsername.toLowerCase().trim());
+        }
+        
+        const { data, error } = await query.single();
 
         if (error || !data) {
-          setError('Invalid username or password');
+          if (isEmail) {
+            setError('Invalid email or password');
+          } else {
+            setError('Invalid username or password');
+          }
           return;
         }
 
@@ -310,6 +362,48 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
               </div>
             )}
 
+            {/* Email Field - Signup Only */}
+            {isSignUp && (
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email Address *
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    placeholder="Enter your email address"
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                    required
+                  />
+                  {/* Email Availability Indicator */}
+                  {checkingEmail && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
+                  {!checkingEmail && emailAvailable !== null && validateEmail(email) && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {emailAvailable ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Email Availability Message */}
+                {validateEmail(email) && emailAvailable !== null && (
+                  <p className={`text-xs mt-1 transition-colors duration-200 ${emailAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {emailAvailable ? '✓ Email is available' : '✗ Email is already registered'}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Username Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -351,26 +445,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
               )}
             </div>
 
-            {/* Date of Birth Field - Signup Only */}
-            {isSignUp && (
+            {/* Email or Username Field - Signin Only */}
+            {!isSignUp && (
               <div>
-                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Date of Birth *
+                <label htmlFor="emailOrUsername" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email or Username *
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <input
-                    id="dateOfBirth"
-                    type="date"
-                    value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+                    id="emailOrUsername"
+                    type="text"
+                    value={emailOrUsername}
+                    onChange={(e) => setEmailOrUsername(e.target.value)}
+                    placeholder="Enter your email or username"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
                     required
-                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  You must be at least 13 years old
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center space-x-4">
+                  <span>✓ Email: user@example.com</span>
+                  <span>✓ Username: myusername</span>
                 </p>
               </div>
             )}
@@ -394,46 +489,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                 />
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Must be at least 8 characters long
+                Must be at least 6 characters long
               </p>
             </div>
-
-            {/* Confirm Password Field - Signup Only */}
-            {isSignUp && (
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Confirm Password *
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm your password"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
-                    required
-                    minLength={8}
-                  />
-                </div>
-                {/* Password Match Indicator */}
-                {confirmPassword && (
-                  <p className={`text-xs mt-1 transition-colors duration-200 ${
-                    password === confirmPassword 
-                      ? 'text-green-600 dark:text-green-400' 
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {password === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
-                  </p>
-                )}
-              </div>
-            )}
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || (isSignUp && usernameAvailable === false)}
+              disabled={loading || (isSignUp && (usernameAvailable === false || emailAvailable === false))}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
               {loading ? (
@@ -452,6 +515,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                 setError('');
                 setSuccess('');
                 setUsernameAvailable(null);
+                setEmailAvailable(null);
+                setEmailOrUsername('');
               }}
               className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200 hover:underline inline-block"
             >
