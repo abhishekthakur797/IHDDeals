@@ -95,111 +95,122 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
   const getFallbackProducts = (): Product[] => {
     return [
       {
-        id: '1',
-        name: 'Premium Wireless Headphones',
-        price: 199.99,
+        deal_id: 1,
+        title: 'Samsung Galaxy Smartphone',
+        subtitle: 'Latest Android smartphone with 128GB storage and triple camera setup',
+        original_price: 25999.00,
+        deal_price: 18999.00,
         image_url: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'electronics',
-        description: 'High-quality wireless headphones with noise cancellation',
-        rating: 4.8
+        buy_now_link: 'https://www.amazon.in/dp/example1',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '2',
-        name: 'Smart Fitness Watch',
-        price: 299.99,
+        deal_id: 2,
+        title: 'Apple MacBook Air M2',
+        subtitle: 'Ultra-thin laptop with M2 chip, 8GB RAM, and 256GB SSD storage',
+        original_price: 119900.00,
+        deal_price: 89999.00,
         image_url: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'electronics',
-        description: 'Advanced fitness tracking with heart rate monitor',
-        rating: 4.6
+        buy_now_link: 'https://www.flipkart.com/example2',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '3',
-        name: 'Stylish Leather Jacket',
-        price: 149.99,
+        deal_id: 3,
+        title: 'Sony WH-1000XM5 Headphones',
+        subtitle: 'Premium noise-canceling wireless headphones with 30-hour battery life',
+        original_price: 29990.00,
+        deal_price: 21990.00,
         image_url: 'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'fashion',
-        description: 'Premium leather jacket for modern style',
-        rating: 4.7
+        buy_now_link: 'https://www.amazon.in/dp/example3',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '4',
-        name: 'Smart Home Speaker',
-        price: 99.99,
+        deal_id: 4,
+        title: 'Apple Watch Series 9',
+        subtitle: 'Advanced fitness tracking with ECG and blood oxygen monitoring',
+        original_price: 45900.00,
+        deal_price: 38999.00,
         image_url: 'https://images.pexels.com/photos/6686448/pexels-photo-6686448.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'electronics',
-        description: 'Voice-controlled smart speaker with AI assistant',
-        rating: 4.5
+        buy_now_link: 'https://www.apple.com/in/example4',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '5',
-        name: 'Yoga Mat Set',
-        price: 49.99,
+        deal_id: 5,
+        title: 'JBL Charge 5 Bluetooth Speaker',
+        subtitle: 'Portable waterproof speaker with powerful bass and 20-hour playtime',
+        original_price: 12999.00,
+        deal_price: 8999.00,
         image_url: 'https://images.pexels.com/photos/4056723/pexels-photo-4056723.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'sports',
-        description: 'Complete yoga mat set with accessories',
-        rating: 4.4
+        buy_now_link: 'https://www.flipkart.com/example5',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '6',
-        name: 'Gaming Mechanical Keyboard',
-        price: 129.99,
+        deal_id: 6,
+        title: 'Logitech MX Master 3S Mouse',
+        subtitle: 'Advanced wireless mouse with precision scrolling and ergonomic design',
+        original_price: 8995.00,
+        deal_price: 6499.00,
         image_url: 'https://images.pexels.com/photos/2115257/pexels-photo-2115257.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'electronics',
-        description: 'RGB mechanical keyboard for gaming',
-        rating: 4.9
+        buy_now_link: 'https://www.amazon.in/dp/example6',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '7',
-        name: 'Portable Bluetooth Speaker',
-        price: 79.99,
+        deal_id: 7,
+        title: 'Philips Air Fryer HD9252',
+        subtitle: 'Healthy cooking with rapid air technology, 4.1L capacity for family meals',
+        original_price: 12995.00,
+        deal_price: 9999.00,
         image_url: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'electronics',
-        description: 'Waterproof portable speaker with excellent sound',
-        rating: 4.3
+        buy_now_link: 'https://www.flipkart.com/example7',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '8',
-        name: 'Designer Sunglasses',
-        price: 89.99,
+        deal_id: 8,
+        title: 'Nike Air Max 270 Sneakers',
+        subtitle: 'Comfortable running shoes with Max Air cushioning and breathable mesh',
+        original_price: 12995.00,
+        deal_price: 8999.00,
         image_url: 'https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'fashion',
-        description: 'UV protection designer sunglasses',
-        rating: 4.2
+        buy_now_link: 'https://www.nike.com/in/example8',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '9',
-        name: 'Coffee Maker Machine',
-        price: 159.99,
+        deal_id: 9,
+        title: 'Levi\'s 511 Slim Fit Jeans',
+        subtitle: 'Classic slim-fit denim jeans in dark wash, comfortable stretch fabric',
+        original_price: 3999.00,
+        deal_price: 2499.00,
         image_url: 'https://images.pexels.com/photos/324028/pexels-photo-324028.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'home',
-        description: 'Automatic coffee maker with programmable features',
-        rating: 4.6
+        buy_now_link: 'https://www.levis.in/example9',
+        created_date: new Date().toISOString(),
+        is_active: true
       },
       {
-        id: '10',
-        name: 'Running Shoes',
-        price: 119.99,
+        deal_id: 10,
+        title: 'Yoga Mat with Alignment Lines',
+        subtitle: 'Premium non-slip yoga mat with carrying strap and alignment guides',
+        original_price: 2999.00,
+        deal_price: 1899.00,
         image_url: 'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300',
-        affiliate_link: '#',
-        category: 'sports',
-        description: 'Comfortable running shoes with advanced cushioning',
-        rating: 4.5
+        buy_now_link: 'https://www.amazon.in/dp/example10',
+        created_date: new Date().toISOString(),
+        is_active: true
       }
     ];
   };
 
   const filterAndSortProducts = () => {
     let filtered = products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (product.subtitle && product.subtitle.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
@@ -207,13 +218,13 @@ const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
-          return a.price - b.price;
+          return a.deal_price - b.deal_price;
         case 'price-high':
-          return b.price - a.price;
+          return b.deal_price - a.deal_price;
         case 'rating':
-          return b.rating - a.rating;
+          return 0; // No rating field in new structure
         default:
-          return a.name.localeCompare(b.name);
+          return a.title.localeCompare(b.title);
       }
     });
 
