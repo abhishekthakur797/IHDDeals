@@ -44,11 +44,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {product.description}
         </p>
         
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-1">
-            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-            <span className="text-xs text-gray-600 dark:text-gray-400">{product.rating}</span>
-          </div>
+        <div className="flex justify-center mb-3">
           <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
             ${product.price}
           </span>
