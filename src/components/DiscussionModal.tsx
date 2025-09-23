@@ -59,14 +59,28 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
 
   const fetchReplies = async () => {
     try {
+      // Use the new utility function for better performance
       const { data, error } = await supabase
+        .rpc('get_threaded_replies', { discussion_uuid: discussion.id });
+
+      if (error) throw error;
+      setReplies(data || []);
+    } catch (error) {
+      console.error('Error fetching replies:', error);
+      // Fallback to direct query if RPC fails
+      try {
+        const { data, error } = await supabase
         .from('discussion_replies')
         .select('*')
         .eq('discussion_id', discussion.id)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      setReplies(data || []);
+        if (error) throw error;
+        setReplies(data || []);
+      } catch (fallbackError) {
+        console.error('Fallback query also failed:', fallbackError);
+        setReplies([]);
+      }
     } catch (error) {
       console.error('Error fetching replies:', error);
       setReplies([]);
